@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- This project file has been saved by the New GreatSPN Editor, v.100 --><project name="SensitivityFBA" version="121">
+  <gspn name="PetriNet">
+    <nodes>
+      <place name="P0" x="10.0" y="5.0"/>
+      <transition delay="FN:FBA" name="T0" type="GEN" x="16.55" y="5.0"/>
+    </nodes>
+    <edges>
+      <arc head="P0" kind="OUTPUT" tail="T0"/>
+    </edges>
+  </gspn>
+  <measures gspn-name="PetriNet" name="Measures" simplified-UI="false">
+    <assignments/>
+    <greatspn/>
+    <formulas>
+      <formula comment="Basic statistics of the toolchain execution." language="STAT"/>
+      <formula comment="All the basic Petri net measures" language="ALL"/>
+    </formulas>
+  </measures>
+</project>
