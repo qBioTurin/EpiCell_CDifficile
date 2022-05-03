@@ -1,10 +1,14 @@
 
 # 1) Lets generate the RData storing the matlab FBA model
-source("Rfunction/MatlabFileGeneration.R")
-Matlab.file = readMATmod("Input/CD196_heme.mat")
-save(Matlab.file, file = "Input/FBAmodel.RData")
 source("Rfunction/Functions.R")
-FBA.generation( model = "./Input/FBAmodel.RData", write = T)
+FBA.generation( model = "./Input/CD196_heme.RData", write = T)
+
+#### This is with 1370 (without the Ex and Tr of Sheme)
+# source("Rfunction/MatlabFileGeneration.R")
+# Matlab.file = readMATmod("Input/CD196_heme.mat")
+# save(Matlab.file, file = "Input/FBAmodel.RData")
+# source("Rfunction/Functions.R")
+#FBA.generation( model = "./Input/FBAmodel.RData", write = T)
 
 #2) Let load the Epimod package
 #library(devtools)
