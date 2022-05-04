@@ -53,7 +53,7 @@ void read_map_string_int(string fname, unordered_map<string,int>& m)
 	if(f.is_open())
 	{
 		cout << "#### " << fname << "####" << endl;
-		int j = 0;
+		int j = 1;
 		while (getline(f,line))
 		{
 			line.erase(remove( line.begin(), line.end(), '\"' ),line.end());
