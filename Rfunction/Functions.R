@@ -1,5 +1,9 @@
-init.gen<- function(i){
-	return(i)
+init.gen <- function(n_file)
+{
+	yini.names <- readRDS(n_file)
+	y_ini <- rep(100,length(yini.names))
+	names(y_ini) <- yini.names
+	return(y_ini)
 }
 
 FBA.generation = function(model,write=F,load=F){

@@ -1,6 +1,7 @@
 #include <string.h>
 #include <sys/resource.h>
-
+#include <map>
+#include <string>
 using namespace FBGLPK;
 
 /*
@@ -42,6 +43,7 @@ static unordered_map <string, int> ReactionsNames;
 static double Flag = -1;
 double rate = 0;
 static double EXphemeCost=1;
+static map <string, string> FBAmet;
 
 /* Read data from file and fill a map<string,int> */
 void read_map_string_int(string fname, unordered_map<string,int>& m)
@@ -103,6 +105,15 @@ void init_data_structures()
 	read_map_string_int("./ReactNames", ReactionsNames);
 	read_constant("./EX_phemeSens", EXphemeCost);
 
+	FBAmet["EX_biomass_e"] = "EX_biomass(e)";
+	FBAmet["EX_pheme_e_in"] = "EX_pheme(e)";
+	FBAmet["EX_cys_L_e"] = "EX_cys_L(e)";
+	FBAmet["EX_trp_L_e"] = "EX_trp_L(e)";
+	FBAmet["EX_val_L_e"] = "EX_val_L(e)";
+	FBAmet["EX_ile_L_e"] = "EX_ile_L(e)";
+	FBAmet["EX_leu_L_e"] = "EX_leu_L(e)";
+	FBAmet["EX_pro_L_e"] = "EX_pro_L(e)";
+
 	Flag = 1;
 }
 
@@ -116,36 +127,66 @@ double FBA(double *Value,
 {
 
 	if( Flag == -1)   init_data_structures();
-	// Saving the reactions indexes from the map
-	int indexR = ReactionsNames.find("EX_pheme(e)") -> second ;
-	//char cstr[str.size()+1];
-	//strcpy(cstr,str.c_str());
 
 	// Definition of the function exploited to calculate the rate,
 	// in this case for semplicity we define it throught the Mass Action law
 
-	if( FBAtime != 0){
+	if( FBAtime != time){
 
-		string TypeBound = "GLP_DB";
+		for (map<string, string>::iterator p = FBAmet.begin();
+       p != FBAmet.end(); ++p ) {
+			// Saving the reactions indexes from the map
+			int index = ReactionsNames.find(p->second) -> second ;
+			string TypeBound = "GLP_DB";
 
-		double Lb = l.getLwBounds(indexR);
-		double Ub = l.getUpBounds(indexR);
-		// updating the buonds for the sensitivity!!
+			double Lb = l.getLwBounds(index);
+			double Ub = l.getUpBounds(index);
+			// updating the buonds for the sensitivity!!
 
-		Lb = Lb * EXphemeCost;
-		Ub = Ub * EXphemeCost;
+			Lb = Lb * EXphemeCost;
+			Ub = Ub * EXphemeCost;
 
-		l.update_bound(indexR, TypeBound, Lb, Ub);
+			l.update_bound(index, TypeBound, Lb, Ub);
+
+		}
 
 		l.solve();
-
-		cout<<"\nSolution:\n\n";
-		//l.print();
 		Vars = l.getVariables();
-		cout << "EX_pheme(e) flux: " << Vars[indexR] << endl;
-		FBAtime = 0;
-		rate=Vars[indexR];
+
+		FBAtime = time;
 	}
+
+	int indexR = 0;
+	if(NameTrans[T] == "EX_pheme_e_out")
+		indexR = ReactionsNames.find(	FBAmet.find("EX_pheme_e_in") -> second ) -> second ;
+	else
+		indexR = ReactionsNames.find(	FBAmet.find(NameTrans[T]) -> second ) -> second ;
+
+	cout<<"\nSolution:\n\n";
+	//l.print();
+	rate=Vars[indexR];
+
+	// trans_in when is neg, otherwise trans_out
+	if((NameTrans[T] == "EX_pheme_e_out") & (rate > 0) )
+		rate = rate;
+	else if((NameTrans[T] == "EX_pheme_e_out") & (rate < 0 ))
+		rate = 0 ;
+	else if((NameTrans[T] == "EX_pheme_e_in") & (rate > 0) )
+		rate = 0 ;
+	else if((NameTrans[T] == "EX_pheme_e_in") & (rate < 0) )
+		rate = -rate ;
+
+	if(NameTrans[T] == "EX_pheme_e_out")
+		cout << NameTrans[T] << " transition with " <<
+			FBAmet.find("EX_pheme_e_in") -> second << " flux: " << Vars[indexR] <<
+				"(rate: "<< rate << ")" << endl;
+	else
+		cout << NameTrans[T] << " transition with " <<
+			FBAmet.find(NameTrans[T]) -> second << " flux: " << Vars[indexR] <<
+				"(rate: "<< rate << ")" << endl;
+
+	if(rate < 0)
+		rate = -rate;
 
 	return(rate);
 }

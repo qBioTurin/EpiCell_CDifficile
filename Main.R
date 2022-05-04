@@ -15,16 +15,21 @@ FBA.generation( model = "./Input/CD196_heme.RData", write = T)
 #install_github("https://github.com/qBioTurin/epimod", ref="master")
 library(epimod)
 
-model.generation(net_fname = "./Net/SensitivityFBA.PNPRO",
+model.generation(net_fname = "./Net/EpitCellDifficile.PNPRO",
 								 transitions_fname = "./Net/TransitionGeneral.cpp",
 								 LP = T)
 
-#3)
-paste0("unfolding2 ./home/SensitivityFBA -long-names ")
-paste0("PN2ODE.sh ./home/SensitivityFBA -C ./home/TransitionGeneral.cpp -H -M")
-model.analysis(solver_fname = "./Net/SensitivityFBA.solver",
+#3) to do inside the docker of model.generation
+paste0("unfolding2 ./home/EpitCellDifficile -long-names ")
+paste0("PN2ODE.sh ./home/EpitCellDifficile -C ./home/TransitionGeneral.cpp -H -M")
+# outside docker
+system("mv ./generation/EpitCellDifficile.solver ./Net")
+
+#4) model analysis
+model.analysis(solver_fname = "./Net/EpitCellDifficile.solver",
 							 i_time = 1,
 							 f_time = 2,
 							 s_time = 0.5,
 							 parameters_fname = "Input/ParametersList.csv",
-							 functions_fname = "Rfunction/Functions.R",debug = T)
+							 functions_fname = "Rfunction/Functions.R",
+							 debug = T)
