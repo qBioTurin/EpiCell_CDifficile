@@ -1,7 +1,7 @@
 #include <string.h>
 #include <sys/resource.h>
 #include <map>
-#include <string>
+#include <regex>
 using namespace FBGLPK;
 
 /*
@@ -53,7 +53,7 @@ void read_map_string_int(string fname, unordered_map<string,int>& m)
 	if(f.is_open())
 	{
 		cout << "#### " << fname << "####" << endl;
-		int j = 0;
+		int j = 1;
 		while (getline(f,line))
 		{
 			line.erase(remove( line.begin(), line.end(), '\"' ),line.end());
@@ -107,11 +107,11 @@ void init_data_structures()
 
 	FBAmet["EX_biomass_e"] = "EX_biomass(e)";
 	FBAmet["EX_pheme_e_in"] = "EX_pheme(e)";
-	FBAmet["EX_cys_L_e"] = "EX_cys_L(e)";
-	FBAmet["EX_trp_L_e"] = "EX_trp_L(e)";
-	FBAmet["EX_val_L_e"] = "EX_val_L(e)";
-	FBAmet["EX_ile_L_e"] = "EX_ile_L(e)";
-	FBAmet["EX_leu_L_e"] = "EX_leu_L(e)";
+	FBAmet["EX_cys_L_e_in"] = "EX_cys_L(e)";
+	FBAmet["EX_trp_L_e_in"] = "EX_trp_L(e)";
+	FBAmet["EX_val_L_e_in"] = "EX_val_L(e)";
+	FBAmet["EX_ile_L_e_in"] = "EX_ile_L(e)";
+	FBAmet["EX_leu_L_e_in"] = "EX_leu_L(e)";
 	FBAmet["EX_pro_L_e"] = "EX_pro_L(e)";
 
 	Flag = 1;
@@ -157,36 +157,44 @@ double FBA(double *Value,
 	}
 
 	int indexR = 0;
-	if(NameTrans[T] == "EX_pheme_e_out")
-		indexR = ReactionsNames.find(	FBAmet.find("EX_pheme_e_in") -> second ) -> second ;
-	else
-		indexR = ReactionsNames.find(	FBAmet.find(NameTrans[T]) -> second ) -> second ;
+	bool Out = 1; // 0 if it is "_in" or in not reversible
+	bool In = 0;
 
+	string str = NameTrans[T];
+	if(str.find("_out") != string::npos){
+		str = std::regex_replace(str, std::regex("_out"), "_in");// replace '_out' -> '_in'
+	}
+	else{
+		Out = 0;
+		if(NameTrans[T].find("_in") != string::npos){
+			In = 1;
+		}
+	}
+
+	indexR = ReactionsNames.find(	FBAmet.find(str) -> second ) -> second ;
 	cout<<"\nSolution:\n\n";
 	//l.print();
 	rate=Vars[indexR];
 
 	// trans_in when is neg, otherwise trans_out
-	if((NameTrans[T] == "EX_pheme_e_out") & (rate > 0) )
+	if( (Out) & (rate > 0) )
 		rate = rate;
-	else if((NameTrans[T] == "EX_pheme_e_out") & (rate < 0 ))
+	else if( (Out) & (rate < 0) )
 		rate = 0 ;
-	else if((NameTrans[T] == "EX_pheme_e_in") & (rate > 0) )
+	else if( (In) & (rate > 0) )
 		rate = 0 ;
-	else if((NameTrans[T] == "EX_pheme_e_in") & (rate < 0) )
+	else if( (In) & (rate < 0) )
 		rate = -rate ;
 
-	if(NameTrans[T] == "EX_pheme_e_out")
-		cout << NameTrans[T] << " transition with " <<
-			FBAmet.find("EX_pheme_e_in") -> second << " flux: " << Vars[indexR] <<
-				"(rate: "<< rate << ")" << endl;
-	else
-		cout << NameTrans[T] << " transition with " <<
-			FBAmet.find(NameTrans[T]) -> second << " flux: " << Vars[indexR] <<
+	cout << NameTrans[T] << " transition with " <<
+			FBAmet.find(str) -> second << " flux: " << Vars[indexR] <<
 				"(rate: "<< rate << ")" << endl;
 
-	if(rate < 0)
+	if(rate < 0){
+		cout << "WARNING: the rate is negative!!!! see transition: " << NameTrans[T] << endl;
 		rate = -rate;
+	}
+
 
 	return(rate);
 }
