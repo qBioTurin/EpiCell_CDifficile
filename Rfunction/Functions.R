@@ -91,3 +91,17 @@ saveNames= function(model){
 
 	return(matrix(ReactionsNames,ncol = 1))
 }
+
+saveMMConstant = function() {
+
+	met.name = c("pheme_e", "pro_L_e", "leu_L_e", "ile_L_e",
+							 "val_L_e", "trp_L_e", "cys_L_e")
+
+	Vmax = c(1, 1, 1, 1, 1, 1, 1)
+	KM = c(1, 1, 1, 1, 1, 1, 1)
+
+	VmaxValues = data.frame(met.name, Vmax)
+	data.frame(met.name, KM)
+
+	return(VmaxValues, KMValues)
+}
