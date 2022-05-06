@@ -2,3 +2,12 @@ g; FBAfile ; FBA.generation; model = "/home/docker/data/Input/FinalMatrix.RData"
 g; ReactNames; saveNames; model = "/home/docker/data/Input/CD196_heme.RData"
 g; EX_phemeSens; 1
 i; init; init.gen; n_file="/home/docker/data/Input/NAMES.RDS"
+c; Death; 1
+c; DeathCD; 1
+c; DrugAction; 1
+c; T_cys_L_e; 1
+c; T_trp_L_e; 1
+c; T_val_L_e; 1
+c; T_ile_L_e; 1
+c; T_leu_L_e; 1
+c; T_pro_L_e; 1
