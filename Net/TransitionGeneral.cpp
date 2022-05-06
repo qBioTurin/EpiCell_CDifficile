@@ -42,8 +42,9 @@ static double FBAtime = -1;
 static unordered_map <string, int> ReactionsNames;
 static double Flag = -1;
 double rate = 0;
-static double EXphemeCost=1;
+static double DW=0;
 static map <string, string> FBAmet;
+
 
 /* Read data from file and fill a map<string,int> */
 void read_map_string_int(string fname, unordered_map<string,int>& m)
@@ -103,9 +104,9 @@ LPprob l(str.c_str());
 void init_data_structures()
 {
 	read_map_string_int("./ReactNames", ReactionsNames);
-	read_constant("./EX_phemeSens", EXphemeCost);
+	read_constant("./DW", DW);
 
-	FBAmet["EX_biomass_e"] = "EX_biomass(e)";
+	FBAmet["EX_biomass_e_in"] = "EX_biomass(e)";
 	FBAmet["EX_pheme_e_in"] = "EX_pheme(e)";
 	FBAmet["EX_cys_L_e_in"] = "EX_cys_L(e)";
 	FBAmet["EX_trp_L_e_in"] = "EX_trp_L(e)";
@@ -139,12 +140,19 @@ double FBA(double *Value,
 			int index = ReactionsNames.find(p->second) -> second ;
 			string TypeBound = "GLP_DB";
 
-			double Lb = l.getLwBounds(index);
-			double Ub = l.getUpBounds(index);
-			// updating the buonds for the sensitivity!!
+			//double Lb = l.getLwBounds(index);
+			//Lb = Lb * EXphemeCost;
 
-			Lb = Lb * EXphemeCost;
-			Ub = Ub * EXphemeCost;
+			// if it is in -> updating the buonds!!
+			if(NameTrans[T] == "EX_biomass_e_in"){
+				double Ub = l.getUpBounds(index);
+				int Biom = Value[ NumPlaces.find("BiomassCD") -> second];
+				Ub = (DW - Biom);
+				if( Ub <= 0 ) Ub = 0.000001;
+			}else{
+				double Lb = l.getLwBounds(index);
+				Lb = Lb ;
+			}
 
 			l.update_bound(index, TypeBound, Lb, Ub);
 
