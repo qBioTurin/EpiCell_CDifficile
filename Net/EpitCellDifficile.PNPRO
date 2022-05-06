@@ -3,18 +3,18 @@
   <gspn name="PetriNet" view-rates="false" zoom="75">
     <nodes>
       <place label-y="-2.0" name="IECs" x="30.0" y="18.0"/>
-      <place label-x="-3.0" label-y="-2.0" name="pheme_e" x="25.0" y="55.0"/>
+      <place label-x="-4.0" label-y="0.0" name="pheme_e" x="25.0" y="55.0"/>
       <transition delay="FN:FBA" label-y="1.5" name="EX_pheme_e_in" rotation="1.5707963267948966" type="GEN" x="22.55" y="73.0"/>
       <transition delay="FN:FBA" label-y="1.5" name="EX_pro_L_e" rotation="1.5707963267948966" type="GEN" x="37.55" y="73.0"/>
-      <transition delay="FN:FBA" label-y="3.0" name="EX_biomass_e_out" rotation="1.5707963267948966" type="GEN" x="13.55" y="73.0"/>
-      <place label-x="3.0" label-y="-2.0" name="BiomassCD" x="9.0" y="55.0"/>
+      <transition delay="FN:FBA" label-y="3.0" name="EX_biomass_e_out" rotation="1.5707963267948966" type="GEN" x="12.55" y="73.0"/>
+      <place label-x="4.5" label-y="0.0" name="BiomassCD" x="9.0" y="55.0"/>
       <transition label-y="-2.0" name="IECsDeath" nservers-x="0.5" rotation="3.141592653589793" type="EXP" x="23.55" y="18.0"/>
-      <place label-x="3.0" label-y="-1.5" name="pro_L_e" x="40.0" y="55.0"/>
-      <place label-x="3.0" label-y="-1.0" name="leu_L_e" x="48.0" y="55.0"/>
-      <place label-x="2.5" label-y="-1.5" name="ile_L_e" x="60.0" y="55.0"/>
-      <place label-x="3.0" label-y="-1.0" name="val_L_e" x="72.0" y="55.0"/>
-      <place label-x="2.5" label-y="-1.0" name="trp_L_e" x="85.0" y="55.0"/>
-      <place label-x="2.5" label-y="-1.0" name="cys_L_e" x="98.0" y="55.0"/>
+      <place label-x="3.5" label-y="0.0" name="pro_L_e" x="40.0" y="55.0"/>
+      <place label-x="4.0" label-y="0.0" name="leu_L_e" x="48.0" y="55.0"/>
+      <place label-x="3.5" label-y="0.0" name="ile_L_e" x="60.0" y="55.0"/>
+      <place label-x="4.0" label-y="0.0" name="val_L_e" x="72.0" y="55.0"/>
+      <place label-x="4.0" label-y="0.0" name="trp_L_e" x="85.0" y="55.0"/>
+      <place label-x="4.0" label-y="0.0" name="cys_L_e" x="98.0" y="55.0"/>
       <transition label-y="1.5" name="D_cys_L_e" nservers-x="0.5" rotation="1.5707963267948966" type="EXP" x="98.55" y="67.0"/>
       <transition label-y="-2.0" name="DeathCD" nservers-x="0.5" rotation="3.141592653589793" type="EXP" x="17.55" y="36.0"/>
       <place label-x="-2.5" label-y="0.0" name="Drug" x="17.0" y="40.0"/>
@@ -77,7 +77,7 @@
       <arc head="DeathCD" kind="INPUT" tail="OxiStress"/>
       <arc head="DrugAction" kind="INPUT" tail="pheme_e"/>
       <arc head="DeathCD" kind="INPUT" mult-k="0.67392578125" tail="BiomassCD">
-        <point x="14.5" y="37.0"/>
+        <point x="14.0" y="37.0"/>
       </arc>
       <arc head="leu_L_e" kind="OUTPUT" tail="IECsDeath">
         <point x="47.5" y="41.5"/>
@@ -221,10 +221,10 @@
         <point x="31.0" y="34.0"/>
       </arc>
       <arc head="EX_biomass_e_in" kind="INPUT" tail="BiomassCD">
-        <point x="7.0" y="64.5"/>
+        <point x="7.0" y="63.0"/>
       </arc>
       <arc head="BiomassCD" kind="OUTPUT" tail="EX_biomass_e_out">
-        <point x="14.0" y="65.0"/>
+        <point x="13.0" y="63.0"/>
       </arc>
     </edges>
   </gspn>
