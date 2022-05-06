@@ -71,6 +71,33 @@ void read_map_string_int(string fname, unordered_map<string,int>& m)
 	}
 }
 
+/* Read data from file and fill a map<string,double> */
+void read_map_string_double(string fname, unordered_map<string,int>& m)
+{
+	ifstream f (fname);
+	string line;
+	if(f.is_open())
+	{
+		cout << "#### " << fname << "####" << endl;
+		int j = 1;
+		while (getline(f,line))
+		{
+			line.erase(remove( line.begin(), line.end(), '\"' ),line.end());
+			// sostituire a j seconda colonna del csv
+			m.insert(pair<string,double>(line,j));
+			cout << line << ";" << j << endl;
+			++j;
+		}
+		f.close();
+	}
+	else
+	{
+		std::cerr<<"\nUnable to open " << fname << ": file do not exists\n";
+		exit(EXIT_FAILURE);
+	}
+}
+
+
 void read_constant(string fname, double& Infection_rate)
 {
 	ifstream f (fname);
@@ -105,6 +132,9 @@ void init_data_structures()
 {
 	read_map_string_int("./ReactNames", ReactionsNames);
 	read_constant("./DW", DW);
+
+	read_map_string_double("./VmaxValues", Vmax);
+	read_map_string_double("./KMValues", KM);
 
 	FBAmet["EX_biomass_e_in"] = "EX_biomass(e)";
 	FBAmet["EX_pheme_e_in"] = "EX_pheme(e)";
@@ -153,6 +183,11 @@ double FBA(double *Value,
 				double Lb = l.getLwBounds(index);
 				Lb = Lb ;
 			}
+
+			int Met = Value[NumPlaces.find("place name")] -> second;
+			double Lb = (- (Vmax.find("place name") -> second) * Met) /
+				((KM.find("place name") -> second) + Met)
+			double Ub = l.getUpBounds(index);
 
 			l.update_bound(index, TypeBound, Lb, Ub);
 
