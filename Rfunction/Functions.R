@@ -92,16 +92,19 @@ saveNames= function(model){
 	return(matrix(ReactionsNames,ncol = 1))
 }
 
-saveMMConstant = function() {
+saveMMConstant = function(type) {
 
-	met.name = c("pheme_e", "pro_L_e", "leu_L_e", "ile_L_e",
-							 "val_L_e", "trp_L_e", "cys_L_e")
+	met.name = c("EX_pheme_e_in", "EX_pro_L_e_in", "EX_leu_L_e_in", "EX_ile_L_e_in",
+							 "EX_val_L_e_in", "EX_trp_L_e_in", "EX_cys_L_e_in")
 
 	Vmax = c(1, 1, 1, 1, 1, 1, 1)
 	KM = c(1, 1, 1, 1, 1, 1, 1)
 
-	VmaxValues = data.frame(met.name, Vmax)
-	data.frame(met.name, KM)
+	if(type == "KM"){
+		y = data.frame(met.name, KM)
+	}else{
+		y = data.frame(met.name, Vmax)
+	}
 
-	return(VmaxValues, KMValues)
+	return(y)
 }

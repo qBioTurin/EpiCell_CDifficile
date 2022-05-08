@@ -44,7 +44,8 @@ static double Flag = -1;
 double rate = 0;
 static double DW=0;
 static map <string, string> FBAmet;
-
+static unordered_map <string, double> Vmax;
+static unordered_map <string, double> KM;
 
 /* Read data from file and fill a map<string,int> */
 void read_map_string_int(string fname, unordered_map<string,int>& m)
@@ -59,7 +60,7 @@ void read_map_string_int(string fname, unordered_map<string,int>& m)
 		{
 			line.erase(remove( line.begin(), line.end(), '\"' ),line.end());
 			m.insert(pair<string,int>(line,j));
-			cout << line << ";" << j << endl;
+			//cout << line << ";" << j << endl;
 			++j;
 		}
 		f.close();
@@ -72,20 +73,29 @@ void read_map_string_int(string fname, unordered_map<string,int>& m)
 }
 
 /* Read data from file and fill a map<string,double> */
-void read_map_string_double(string fname, unordered_map<string,int>& m)
+void read_map_string_double(string fname, unordered_map<string,double>& m)
 {
 	ifstream f (fname);
 	string line;
 	if(f.is_open())
 	{
+		size_t pos = 0, c_pos = 0, length = 0;
 		cout << "#### " << fname << "####" << endl;
 		int j = 1;
 		while (getline(f,line))
 		{
 			line.erase(remove( line.begin(), line.end(), '\"' ),line.end());
-			// sostituire a j seconda colonna del csv
-			m.insert(pair<string,double>(line,j));
-			cout << line << ";" << j << endl;
+			pos = 0;
+			c_pos = 0;
+			// read rates
+			length = line.length();
+
+				pos = line.find(',');
+				if( pos == string::npos)
+					pos = length;
+				m.insert(pair<string,double>(line.substr(0,pos) , stod(line.substr(pos+1,length))) );
+				cout <<line.substr(0,pos) << ": " << stod(line.substr(pos+1,length)) << " ";
+			cout << endl;
 			++j;
 		}
 		f.close();
@@ -96,7 +106,6 @@ void read_map_string_double(string fname, unordered_map<string,int>& m)
 		exit(EXIT_FAILURE);
 	}
 }
-
 
 void read_constant(string fname, double& Infection_rate)
 {
@@ -131,7 +140,7 @@ LPprob l(str.c_str());
 void init_data_structures()
 {
 	read_map_string_int("./ReactNames", ReactionsNames);
-	read_constant("./DW", DW);
+	read_constant("./DrWeight", DW);
 
 	read_map_string_double("./VmaxValues", Vmax);
 	read_map_string_double("./KMValues", KM);
@@ -143,7 +152,7 @@ void init_data_structures()
 	FBAmet["EX_val_L_e_in"] = "EX_val_L(e)";
 	FBAmet["EX_ile_L_e_in"] = "EX_ile_L(e)";
 	FBAmet["EX_leu_L_e_in"] = "EX_leu_L(e)";
-	FBAmet["EX_pro_L_e"] = "EX_pro_L(e)";
+	FBAmet["EX_pro_L_e_in"] = "EX_pro_L(e)";
 
 	Flag = 1;
 }
@@ -170,27 +179,20 @@ double FBA(double *Value,
 			int index = ReactionsNames.find(p->second) -> second ;
 			string TypeBound = "GLP_DB";
 
-			//double Lb = l.getLwBounds(index);
-			//Lb = Lb * EXphemeCost;
+			double Ub = l.getUpBounds(index);
+			double Lb = l.getLwBounds(index);
 
 			// if it is in -> updating the buonds!!
-			if(NameTrans[T] == "EX_biomass_e_in"){
-				double Ub = l.getUpBounds(index);
+			if(p->first == "EX_biomass_e_in"){
 				int Biom = Value[ NumPlaces.find("BiomassCD") -> second];
 				Ub = (DW - Biom);
 				if( Ub <= 0 ) Ub = 0.000001;
 			}else{
-				double Lb = l.getLwBounds(index);
-				Lb = Lb ;
-			}
-
-			int Met = Value[NumPlaces.find("place name")] -> second;
-			double Lb = (- (Vmax.find("place name") -> second) * Met) /
-				((KM.find("place name") -> second) + Met)
-			double Ub = l.getUpBounds(index);
-
+				double Met = Value[Trans[NumTrans.find(p->first) -> second].InPlaces[0].Id];
+				cout<< "Trans: " <<  p->first << ", MEt input: " << Met <<";" << endl;
+				Lb = (- (Vmax.find(p->first) -> second) * Met) / ((KM.find(p->first) -> second) + Met);
+				}
 			l.update_bound(index, TypeBound, Lb, Ub);
-
 		}
 
 		l.solve();

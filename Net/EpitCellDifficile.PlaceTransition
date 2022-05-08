@@ -1,5 +1,5 @@
 #PLACE  ID
-EpithelialCells	0
+IECs	0
 pheme_e	1
 BiomassCD	2
 pro_L_e	3
@@ -19,9 +19,9 @@ trp_L_v	16
 cys_L_v	17
 #TRANSITION  ID
 EX_pheme_e_in	0
-EX_pro_L_e	1
-EX_biomass_e	2
-Death	3
+EX_pro_L_e_in	1
+EX_biomass_e_out	2
+IECsDeath	3
 D_cys_L_e	4
 DeathCD	5
 EX_val_L_e_in	6
@@ -49,3 +49,4 @@ EX_trp_L_e_out	27
 EX_val_L_e_out	28
 EX_ile_L_e_out	29
 EX_leu_L_e_in	30
+EX_biomass_e_in	31

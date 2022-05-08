@@ -1,7 +1,8 @@
 g; FBAfile ; FBA.generation; model = "/home/docker/data/Input/FinalMatrix.RData"; load=T
 g; ReactNames; saveNames; model = "/home/docker/data/Input/CD196_heme.RData"
-g; VmaxValues; saveMMConstant;
-g; KMValues; saveMMConstant;
+g; VmaxValues; saveMMConstant; type = "Vmax"
+g; KMValues; saveMMConstant; type = "KM"
+g; DrWeight; 100
 i; init; init.gen; n_file="/home/docker/data/Input/NAMES.RDS"
 c; IECsDeath; 1
 c; DeathCD; 1

@@ -5,7 +5,7 @@
       <place label-y="-2.0" name="IECs" x="30.0" y="18.0"/>
       <place label-x="-4.0" label-y="0.0" name="pheme_e" x="25.0" y="55.0"/>
       <transition delay="FN:FBA" label-y="1.5" name="EX_pheme_e_in" rotation="1.5707963267948966" type="GEN" x="22.55" y="73.0"/>
-      <transition delay="FN:FBA" label-y="1.5" name="EX_pro_L_e" rotation="1.5707963267948966" type="GEN" x="37.55" y="73.0"/>
+      <transition delay="FN:FBA" label-y="1.5" name="EX_pro_L_e_in" rotation="1.5707963267948966" type="GEN" x="37.55" y="73.0"/>
       <transition delay="FN:FBA" label-y="3.0" name="EX_biomass_e_out" rotation="1.5707963267948966" type="GEN" x="12.55" y="73.0"/>
       <place label-x="4.5" label-y="0.0" name="BiomassCD" x="9.0" y="55.0"/>
       <transition label-y="-2.0" name="IECsDeath" nservers-x="0.5" rotation="3.141592653589793" type="EXP" x="23.55" y="18.0"/>
@@ -174,7 +174,7 @@
       </arc>
       <arc head="ile_L_e" kind="OUTPUT" tail="D_ile_L_e"/>
       <arc head="leu_L_e" kind="OUTPUT" tail="D_leu_L_e"/>
-      <arc head="EX_pro_L_e" kind="INPUT" mult-k="0.9368164062500001" tail="pro_L_e">
+      <arc head="EX_pro_L_e_in" kind="INPUT" mult-k="0.9368164062500001" tail="pro_L_e">
         <point x="38.0" y="61.5"/>
       </arc>
       <arc head="cys_L_e" kind="OUTPUT" tail="EX_cys_L_e_out">
