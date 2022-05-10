@@ -1,18 +1,5 @@
-init.gen <- function(n_file)
-{
-	yini.names <- readRDS(n_file)
-	y_ini <- c(4.57*10^5, 0,
-						 (1/3)*((3.14*0.5^2)/4)*(((4*0.5)/6)+5.5)*(1.3*10^-12)*(4.57*10^5)*100,
-						 0.001, 2.35, 0.27, 0.13, 0.25, 0.05,
-						 0.13, 0, 0.17116*16, 0.36, 0.57,
-						 0.32, 0.58, 0.1, 0.1)
-
-	names(y_ini) <- c("IECs", "Damage", "BiomassCD", "pheme_e", "pro_L_v", "leu_L_v", "ile_L_v", "val_L_v",
-										"trp_L_v", "cys_L_v", "OxiStress", "Drug", "pro_L_e", "leu_L_e",
-										"ile_L_e", "val_L_e", "trp_L_e", "cys_L_e")
-
-	y_ini = y_ini[yini.names]
-	return(y_ini)
+init.gen<- function(i){
+	return(i)
 }
 
 FBA.generation = function(model,write=F,load=F){
@@ -99,21 +86,4 @@ saveNames= function(model){
 	ReactionsNames <- unlist(Matlab.file@react_id)
 
 	return(matrix(ReactionsNames,ncol = 1))
-}
-
-saveMMConstant = function(type) {
-
-	met.name = c("EX_pheme_e_in", "EX_pro_L_e_in", "EX_leu_L_e_in", "EX_ile_L_e_in",
-							 "EX_val_L_e_in", "EX_trp_L_e_in", "EX_cys_L_e_in")
-
-	Vmax = c(1, 1, 1, 1, 1, 1, 1)
-	KM = c(1, 1, 1, 1, 1, 1, 1)
-
-	if(type == "KM"){
-		y = data.frame(met.name, KM)
-	}else{
-		y = data.frame(met.name, Vmax)
-	}
-
-	return(y)
 }

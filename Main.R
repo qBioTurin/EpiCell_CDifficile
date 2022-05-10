@@ -11,8 +11,9 @@ FBA.generation( model = "./Input/CD196_heme.RData", write = T)
 #FBA.generation( model = "./Input/FBAmodel.RData", write = T)
 
 #2) Let load the Epimod package
-library(devtools)
-install_github("https://github.com/qBioTurin/epimod", ref="master")
+
+# library(devtools)
+# install_github("https://github.com/qBioTurin/epimod", ref="master")
 
 library(epimod)
 

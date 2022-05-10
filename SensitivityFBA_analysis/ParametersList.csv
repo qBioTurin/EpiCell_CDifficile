@@ -1,0 +1,3 @@
+g; FBAfile ; FBA.generation; model = "/home/docker/data/Input/FinalMatrix.RData"; load=T
+g; ReactNames; saveNames; model = "/home/docker/data/Input/CD196_heme.RData"
+i; init; init.gen; i=c(0)

@@ -1,7 +1,7 @@
 #include <string.h>
 #include <sys/resource.h>
 #include <map>
-#include <string>
+#include <regex>
 using namespace FBGLPK;
 
 /*
@@ -42,8 +42,10 @@ static double FBAtime = -1;
 static unordered_map <string, int> ReactionsNames;
 static double Flag = -1;
 double rate = 0;
-static double EXphemeCost=1;
+static double DW=0;
 static map <string, string> FBAmet;
+static unordered_map <string, double> Vmax;
+static unordered_map <string, double> KM;
 
 /* Read data from file and fill a map<string,int> */
 void read_map_string_int(string fname, unordered_map<string,int>& m)
@@ -58,7 +60,42 @@ void read_map_string_int(string fname, unordered_map<string,int>& m)
 		{
 			line.erase(remove( line.begin(), line.end(), '\"' ),line.end());
 			m.insert(pair<string,int>(line,j));
-			cout << line << ";" << j << endl;
+			//cout << line << ";" << j << endl;
+			++j;
+		}
+		f.close();
+	}
+	else
+	{
+		std::cerr<<"\nUnable to open " << fname << ": file do not exists\n";
+		exit(EXIT_FAILURE);
+	}
+}
+
+/* Read data from file and fill a map<string,double> */
+void read_map_string_double(string fname, unordered_map<string,double>& m)
+{
+	ifstream f (fname);
+	string line;
+	if(f.is_open())
+	{
+		size_t pos = 0, c_pos = 0, length = 0;
+		cout << "#### " << fname << "####" << endl;
+		int j = 1;
+		while (getline(f,line))
+		{
+			line.erase(remove( line.begin(), line.end(), '\"' ),line.end());
+			pos = 0;
+			c_pos = 0;
+			// read rates
+			length = line.length();
+
+				pos = line.find(',');
+				if( pos == string::npos)
+					pos = length;
+				m.insert(pair<string,double>(line.substr(0,pos) , stod(line.substr(pos+1,length))) );
+				cout <<line.substr(0,pos) << ": " << stod(line.substr(pos+1,length)) << " ";
+			cout << endl;
 			++j;
 		}
 		f.close();
@@ -103,16 +140,19 @@ LPprob l(str.c_str());
 void init_data_structures()
 {
 	read_map_string_int("./ReactNames", ReactionsNames);
-	read_constant("./EX_phemeSens", EXphemeCost);
+	read_constant("./gDW_CDmax", gDW_CDmax);
 
-	FBAmet["EX_biomass_e"] = "EX_biomass(e)";
+	read_map_string_double("./VmaxValues", Vmax);
+	read_map_string_double("./KMValues", KM);
+
+	FBAmet["EX_biomass_e_in"] = "EX_biomass(e)";
 	FBAmet["EX_pheme_e_in"] = "EX_pheme(e)";
-	FBAmet["EX_cys_L_e"] = "EX_cys_L(e)";
-	FBAmet["EX_trp_L_e"] = "EX_trp_L(e)";
-	FBAmet["EX_val_L_e"] = "EX_val_L(e)";
-	FBAmet["EX_ile_L_e"] = "EX_ile_L(e)";
-	FBAmet["EX_leu_L_e"] = "EX_leu_L(e)";
-	FBAmet["EX_pro_L_e"] = "EX_pro_L(e)";
+	FBAmet["EX_cys_L_e_in"] = "EX_cys_L(e)";
+	FBAmet["EX_trp_L_e_in"] = "EX_trp_L(e)";
+	FBAmet["EX_val_L_e_in"] = "EX_val_L(e)";
+	FBAmet["EX_ile_L_e_in"] = "EX_ile_L(e)";
+	FBAmet["EX_leu_L_e_in"] = "EX_leu_L(e)";
+	FBAmet["EX_pro_L_e_in"] = "EX_pro_L(e)";
 
 	Flag = 1;
 }
@@ -139,15 +179,20 @@ double FBA(double *Value,
 			int index = ReactionsNames.find(p->second) -> second ;
 			string TypeBound = "GLP_DB";
 
-			double Lb = l.getLwBounds(index);
 			double Ub = l.getUpBounds(index);
-			// updating the buonds for the sensitivity!!
+			double Lb = l.getLwBounds(index);
 
-			Lb = Lb * EXphemeCost;
-			Ub = Ub * EXphemeCost;
-
+			// if it is in -> updating the buonds!!
+			if(p->first == "EX_biomass_e_in"){
+				int Biom = Value[NumPlaces.find("BiomassCD") -> second];
+				Ub = (gDW_CDmax - Biom);
+				if( Ub <= 0 ) Ub = 0.000001;
+			}else{
+				double Met = Value[Trans[NumTrans.find(p->first) -> second].InPlaces[0].Id];
+				cout<< "Trans: " <<  p->first << ", MEt input: " << Met <<";" << endl;
+				Lb = (- (Vmax.find(p->first) -> second) * Met) / ((KM.find(p->first) -> second) + Met);
+				}
 			l.update_bound(index, TypeBound, Lb, Ub);
-
 		}
 
 		l.solve();
@@ -157,38 +202,44 @@ double FBA(double *Value,
 	}
 
 	int indexR = 0;
-	if(NameTrans[T] == "EX_pheme_e_out")
-		indexR = ReactionsNames.find(	FBAmet.find("EX_pheme_e_in") -> second ) -> second ;
-	else
-		indexR = ReactionsNames.find(	FBAmet.find(NameTrans[T]) -> second ) -> second ;
+	bool Out = 1; // 0 if it is "_in" or in not reversible
+	bool In = 0;
 
+	string str = NameTrans[T];
+	if(str.find("_out") != string::npos){
+		str = std::regex_replace(str, std::regex("_out"), "_in");// replace '_out' -> '_in'
+	}
+	else{
+		Out = 0;
+		if(NameTrans[T].find("_in") != string::npos){
+			In = 1;
+		}
+	}
+
+	indexR = ReactionsNames.find(	FBAmet.find(str) -> second ) -> second ;
 	cout<<"\nSolution:\n\n";
 	//l.print();
 	rate=Vars[indexR];
 
 	// trans_in when is neg, otherwise trans_out
-	if((NameTrans[T] == "EX_pheme_e_out") & (rate > 0) )
+	if( (Out) & (rate > 0) )
 		rate = rate;
-	else if((NameTrans[T] == "EX_pheme_e_out") & (rate < 0 ))
+	else if( (Out) & (rate < 0) )
 		rate = 0 ;
-	else if((NameTrans[T] == "EX_pheme_e_in") & (rate > 0) )
+	else if( (In) & (rate > 0) )
 		rate = 0 ;
-	else if((NameTrans[T] == "EX_pheme_e_in") & (rate < 0) )
+	else if( (In) & (rate < 0) )
 		rate = -rate ;
 
-	if(NameTrans[T] == "EX_pheme_e_out")
-		cout << NameTrans[T] << " transition with " <<
-			FBAmet.find("EX_pheme_e_in") -> second << " flux: " << Vars[indexR] <<
-				"(rate: "<< rate << ")" << endl;
-	else
-		cout << NameTrans[T] << " transition with " <<
-			FBAmet.find(NameTrans[T]) -> second << " flux: " << Vars[indexR] <<
+	cout << NameTrans[T] << " transition with " <<
+			FBAmet.find(str) -> second << " flux: " << Vars[indexR] <<
 				"(rate: "<< rate << ")" << endl;
 
-
-
-	if(rate < 0)
+	if(rate < 0){
+		cout << "WARNING: the rate is negative!!!! see transition: " << NameTrans[T] << endl;
 		rate = -rate;
+	}
 
-	return(1);
+
+	return(rate);
 }

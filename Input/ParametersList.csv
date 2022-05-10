@@ -2,11 +2,11 @@ g; FBAfile ; FBA.generation; model = "/home/docker/data/Input/FinalMatrix.RData"
 g; ReactNames; saveNames; model = "/home/docker/data/Input/CD196_heme.RData"
 g; VmaxValues; saveMMConstant; type = "Vmax"
 g; KMValues; saveMMConstant; type = "KM"
-g; DrWeight; 100
+g; gDW_CDmax; 3.977824e-12
 i; init; init.gen; n_file="/home/docker/data/Input/NAMES.RDS"
 c; IECsDeath; 1
 c; DeathCD; 1
-c; DrugAction; 1
+c; DrugAction; 0.001
 c; Inflammation; 1
 c; T_cys_L_e; 1
 c; T_trp_L_e; 1
@@ -14,7 +14,7 @@ c; T_val_L_e; 1
 c; T_ile_L_e; 1
 c; T_leu_L_e; 1
 c; T_pro_L_e; 1
-c; D_pheme_e; 1
+c; D_pheme_e; 0.001
 c; D_cys_L_e; 0.55375
 c; D_trp_L_e; 0.28
 c; D_val_L_e; 2.28125

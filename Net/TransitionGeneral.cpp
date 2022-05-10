@@ -42,7 +42,7 @@ static double FBAtime = -1;
 static unordered_map <string, int> ReactionsNames;
 static double Flag = -1;
 double rate = 0;
-static double DW=0;
+static double gDW_CDmax=0;
 static map <string, string> FBAmet;
 static unordered_map <string, double> Vmax;
 static unordered_map <string, double> KM;
@@ -140,7 +140,7 @@ LPprob l(str.c_str());
 void init_data_structures()
 {
 	read_map_string_int("./ReactNames", ReactionsNames);
-	read_constant("./DrWeight", DW);
+	read_constant("./gDW_CDmax", gDW_CDmax);
 
 	read_map_string_double("./VmaxValues", Vmax);
 	read_map_string_double("./KMValues", KM);
@@ -184,8 +184,8 @@ double FBA(double *Value,
 
 			// if it is in -> updating the buonds!!
 			if(p->first == "EX_biomass_e_in"){
-				int Biom = Value[ NumPlaces.find("BiomassCD") -> second];
-				Ub = (DW - Biom);
+				int Biom = Value[NumPlaces.find("BiomassCD") -> second];
+				Ub = (gDW_CDmax - Biom);
 				if( Ub <= 0 ) Ub = 0.000001;
 			}else{
 				double Met = Value[Trans[NumTrans.find(p->first) -> second].InPlaces[0].Id];

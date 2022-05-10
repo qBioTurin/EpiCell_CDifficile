@@ -9,8 +9,8 @@
 using namespace SDE;
 extern double epsilon;
 
- string places[]={"EpithelialCells","pheme_e","BiomassCD","pro_L_e","leu_L_e","ile_L_e","val_L_e","trp_e","cys_e","Drug","OxiStress","Damage","pro_L_v","leu_L_v","ile_L_v","val_L_v","trp_L_v","cys_L_v"};
- string transitions[]={"EX_pheme_e_in","EX_pro_L_e","EX_biomass_e","Death","DeathCD","EX_val_L_e","EX_ile_L_e","EX_leu_L_e","EX_cys_L_e","EX_trp_L_e","DrugAction","T_cys_L_e","EX_pheme_e_out","T_trp_L_e","T_val_L_e","T_ile_L_e","T_leu_L_e","T_pro_L_e"};
+ string places[]={"IECs","pheme_e","BiomassCD","pro_L_e","leu_L_e","ile_L_e","val_L_e","trp_L_e","cys_L_e","Drug","OxiStress","Damage","pro_L_v","leu_L_v","ile_L_v","val_L_v","trp_L_v","cys_L_v"};
+ string transitions[]={"EX_pheme_e_in","EX_pro_L_e_in","EX_biomass_e_out","IECsDeath","D_cys_L_e","DeathCD","EX_val_L_e_in","EX_ile_L_e_in","EX_leu_L_e_out","EX_cys_L_e_in","EX_trp_L_e_in","DrugAction","D_pheme_e","D_trp_L_e","D_val_L_e","D_ile_L_e","D_leu_L_e","D_pro_L_e","T_cys_L_e","EX_pheme_e_out","Inflammation","T_trp_L_e","T_val_L_e","T_ile_L_e","T_leu_L_e","T_pro_L_e","EX_cys_L_e_out","EX_trp_L_e_out","EX_val_L_e_out","EX_ile_L_e_out","EX_leu_L_e_in","EX_biomass_e_in"};
 
 int main(int argc, char **argv) {
 
@@ -224,7 +224,7 @@ int main(int argc, char **argv) {
  struct InfTr t;
  Equation eq;
  Elem el;
- SystEqMas se(18,18,places,transitions,itime,seed);
+ SystEqMas se(18,32,places,transitions,itime,seed);
  vector< struct InfPlace> Vpl;
 
 //Transition EX_pheme_e_in
@@ -245,7 +245,7 @@ int main(int argc, char **argv) {
  t.Places.push_back(pt);
  se.InsertTran(0,t);
 
-//Transition EX_pro_L_e
+//Transition EX_pro_L_e_in
  t.InPlaces.clear();
  t.InhPlaces.clear();
  t.InOuPlaces.clear();
@@ -263,7 +263,7 @@ int main(int argc, char **argv) {
  t.Places.push_back(pt);
  se.InsertTran(1,t);
 
-//Transition EX_biomass_e
+//Transition EX_biomass_e_out
  t.InPlaces.clear();
  t.InhPlaces.clear();
  t.InOuPlaces.clear();
@@ -272,14 +272,13 @@ int main(int argc, char **argv) {
  t.GenFun= "FBA";
  t.FuncT=  &FBA;
  t.rate = 1.0;
+ t.InOuPlaces.insert(2);
  pt.Id = 2;
  pt.Card = 1;
- t.InPlaces.push_back(pt);
- t.InOuPlaces.insert(2);
- t.InOuPlaces.insert(2);
+ t.Places.push_back(pt);
  se.InsertTran(2,t);
 
-//Transition Death
+//Transition IECsDeath
  t.InPlaces.clear();
  t.InhPlaces.clear();
  t.InOuPlaces.clear();
@@ -288,14 +287,62 @@ int main(int argc, char **argv) {
  t.GenFun= "";
  t.FuncT=  nullptr;
  t.rate = 1.000000;
+ pt.Id = 2;
+ pt.Card = 1;
+ t.InPlaces.push_back(pt);
+ t.InOuPlaces.insert(2);
  pt.Id = 0;
  pt.Card = 1;
  t.InPlaces.push_back(pt);
  t.InOuPlaces.insert(0);
+ t.InOuPlaces.insert(11);
+ t.InOuPlaces.insert(2);
+ t.InOuPlaces.insert(5);
+ t.InOuPlaces.insert(4);
+ t.InOuPlaces.insert(8);
+ t.InOuPlaces.insert(7);
+ t.InOuPlaces.insert(6);
+ t.InOuPlaces.insert(3);
  pt.Id = 0;
  pt.Card = -1;
  t.Places.push_back(pt);
+ pt.Id = 3;
+ pt.Card = 1;
+ t.Places.push_back(pt);
+ pt.Id = 4;
+ pt.Card = 1;
+ t.Places.push_back(pt);
+ pt.Id = 5;
+ pt.Card = 1;
+ t.Places.push_back(pt);
+ pt.Id = 6;
+ pt.Card = 1;
+ t.Places.push_back(pt);
+ pt.Id = 7;
+ pt.Card = 1;
+ t.Places.push_back(pt);
+ pt.Id = 8;
+ pt.Card = 1;
+ t.Places.push_back(pt);
+ pt.Id = 11;
+ pt.Card = 1;
+ t.Places.push_back(pt);
  se.InsertTran(3,t);
+
+//Transition D_cys_L_e
+ t.InPlaces.clear();
+ t.InhPlaces.clear();
+ t.InOuPlaces.clear();
+ t.Places.clear();
+ t.discrete= false;
+ t.GenFun= "";
+ t.FuncT=  nullptr;
+ t.rate = 1.000000;
+ t.InOuPlaces.insert(8);
+ pt.Id = 8;
+ pt.Card = 1;
+ t.Places.push_back(pt);
+ se.InsertTran(4,t);
 
 //Transition DeathCD
  t.InPlaces.clear();
@@ -306,16 +353,23 @@ int main(int argc, char **argv) {
  t.GenFun= "";
  t.FuncT=  nullptr;
  t.rate = 1.000000;
+ pt.Id = 2;
+ pt.Card = 1;
+ t.InPlaces.push_back(pt);
+ t.InOuPlaces.insert(2);
  pt.Id = 10;
  pt.Card = 1;
  t.InPlaces.push_back(pt);
  t.InOuPlaces.insert(10);
+ pt.Id = 2;
+ pt.Card = -1;
+ t.Places.push_back(pt);
  pt.Id = 10;
  pt.Card = -1;
  t.Places.push_back(pt);
- se.InsertTran(4,t);
+ se.InsertTran(5,t);
 
-//Transition EX_val_L_e
+//Transition EX_val_L_e_in
  t.InPlaces.clear();
  t.InhPlaces.clear();
  t.InOuPlaces.clear();
@@ -331,9 +385,9 @@ int main(int argc, char **argv) {
  pt.Id = 6;
  pt.Card = -1;
  t.Places.push_back(pt);
- se.InsertTran(5,t);
+ se.InsertTran(6,t);
 
-//Transition EX_ile_L_e
+//Transition EX_ile_L_e_in
  t.InPlaces.clear();
  t.InhPlaces.clear();
  t.InOuPlaces.clear();
@@ -349,9 +403,9 @@ int main(int argc, char **argv) {
  pt.Id = 5;
  pt.Card = -1;
  t.Places.push_back(pt);
- se.InsertTran(6,t);
+ se.InsertTran(7,t);
 
-//Transition EX_leu_L_e
+//Transition EX_leu_L_e_out
  t.InPlaces.clear();
  t.InhPlaces.clear();
  t.InOuPlaces.clear();
@@ -360,16 +414,13 @@ int main(int argc, char **argv) {
  t.GenFun= "FBA";
  t.FuncT=  &FBA;
  t.rate = 1.0;
- pt.Id = 4;
- pt.Card = 1;
- t.InPlaces.push_back(pt);
  t.InOuPlaces.insert(4);
  pt.Id = 4;
- pt.Card = -1;
+ pt.Card = 1;
  t.Places.push_back(pt);
- se.InsertTran(7,t);
+ se.InsertTran(8,t);
 
-//Transition EX_cys_L_e
+//Transition EX_cys_L_e_in
  t.InPlaces.clear();
  t.InhPlaces.clear();
  t.InOuPlaces.clear();
@@ -385,9 +436,9 @@ int main(int argc, char **argv) {
  pt.Id = 8;
  pt.Card = -1;
  t.Places.push_back(pt);
- se.InsertTran(8,t);
+ se.InsertTran(9,t);
 
-//Transition EX_trp_L_e
+//Transition EX_trp_L_e_in
  t.InPlaces.clear();
  t.InhPlaces.clear();
  t.InOuPlaces.clear();
@@ -403,7 +454,7 @@ int main(int argc, char **argv) {
  pt.Id = 7;
  pt.Card = -1;
  t.Places.push_back(pt);
- se.InsertTran(9,t);
+ se.InsertTran(10,t);
 
 //Transition DrugAction
  t.InPlaces.clear();
@@ -414,18 +465,115 @@ int main(int argc, char **argv) {
  t.GenFun= "";
  t.FuncT=  nullptr;
  t.rate = 1.000000;
+ pt.Id = 1;
+ pt.Card = 1;
+ t.InPlaces.push_back(pt);
+ t.InOuPlaces.insert(1);
  pt.Id = 9;
  pt.Card = 1;
  t.InPlaces.push_back(pt);
  t.InOuPlaces.insert(9);
  t.InOuPlaces.insert(10);
+ pt.Id = 1;
+ pt.Card = -1;
+ t.Places.push_back(pt);
  pt.Id = 9;
  pt.Card = -1;
  t.Places.push_back(pt);
  pt.Id = 10;
  pt.Card = 1;
  t.Places.push_back(pt);
- se.InsertTran(10,t);
+ se.InsertTran(11,t);
+
+//Transition D_pheme_e
+ t.InPlaces.clear();
+ t.InhPlaces.clear();
+ t.InOuPlaces.clear();
+ t.Places.clear();
+ t.discrete= false;
+ t.GenFun= "";
+ t.FuncT=  nullptr;
+ t.rate = 1.000000;
+ t.InOuPlaces.insert(1);
+ pt.Id = 1;
+ pt.Card = 1;
+ t.Places.push_back(pt);
+ se.InsertTran(12,t);
+
+//Transition D_trp_L_e
+ t.InPlaces.clear();
+ t.InhPlaces.clear();
+ t.InOuPlaces.clear();
+ t.Places.clear();
+ t.discrete= false;
+ t.GenFun= "";
+ t.FuncT=  nullptr;
+ t.rate = 1.000000;
+ t.InOuPlaces.insert(7);
+ pt.Id = 7;
+ pt.Card = 1;
+ t.Places.push_back(pt);
+ se.InsertTran(13,t);
+
+//Transition D_val_L_e
+ t.InPlaces.clear();
+ t.InhPlaces.clear();
+ t.InOuPlaces.clear();
+ t.Places.clear();
+ t.discrete= false;
+ t.GenFun= "";
+ t.FuncT=  nullptr;
+ t.rate = 1.000000;
+ t.InOuPlaces.insert(6);
+ pt.Id = 6;
+ pt.Card = 1;
+ t.Places.push_back(pt);
+ se.InsertTran(14,t);
+
+//Transition D_ile_L_e
+ t.InPlaces.clear();
+ t.InhPlaces.clear();
+ t.InOuPlaces.clear();
+ t.Places.clear();
+ t.discrete= false;
+ t.GenFun= "";
+ t.FuncT=  nullptr;
+ t.rate = 1.000000;
+ t.InOuPlaces.insert(5);
+ pt.Id = 5;
+ pt.Card = 1;
+ t.Places.push_back(pt);
+ se.InsertTran(15,t);
+
+//Transition D_leu_L_e
+ t.InPlaces.clear();
+ t.InhPlaces.clear();
+ t.InOuPlaces.clear();
+ t.Places.clear();
+ t.discrete= false;
+ t.GenFun= "";
+ t.FuncT=  nullptr;
+ t.rate = 1.000000;
+ t.InOuPlaces.insert(4);
+ pt.Id = 4;
+ pt.Card = 1;
+ t.Places.push_back(pt);
+ se.InsertTran(16,t);
+
+//Transition D_pro_L_e
+ t.InPlaces.clear();
+ t.InhPlaces.clear();
+ t.InOuPlaces.clear();
+ t.Places.clear();
+ t.discrete= false;
+ t.GenFun= "";
+ t.FuncT=  nullptr;
+ t.rate = 1.000000;
+ t.InOuPlaces.insert(3);
+ pt.Id = 3;
+ pt.Card = 1;
+ t.Places.push_back(pt);
+ se.InsertTran(17,t);
 
 //Transition T_cys_L_e
  t.InPlaces.clear();
@@ -436,16 +584,23 @@ int main(int argc, char **argv) {
  t.GenFun= "";
  t.FuncT=  nullptr;
  t.rate = 1.000000;
+ pt.Id = 8;
+ pt.Card = 1;
+ t.InPlaces.push_back(pt);
+ t.InOuPlaces.insert(8);
  pt.Id = 0;
  pt.Card = 1;
  t.InPlaces.push_back(pt);
  t.InOuPlaces.insert(0);
  t.InOuPlaces.insert(0);
  t.InOuPlaces.insert(17);
+ pt.Id = 8;
+ pt.Card = -1;
+ t.Places.push_back(pt);
  pt.Id = 17;
  pt.Card = 1;
  t.Places.push_back(pt);
- se.InsertTran(11,t);
+ se.InsertTran(18,t);
 
 //Transition EX_pheme_e_out
  t.InPlaces.clear();
@@ -460,7 +615,27 @@ int main(int argc, char **argv) {
  pt.Id = 1;
  pt.Card = 1;
  t.Places.push_back(pt);
- se.InsertTran(12,t);
+ se.InsertTran(19,t);
+
+//Transition Inflammation
+ t.InPlaces.clear();
+ t.InhPlaces.clear();
+ t.InOuPlaces.clear();
+ t.Places.clear();
+ t.discrete= false;
+ t.GenFun= "";
+ t.FuncT=  nullptr;
+ t.rate = 1.000000;
+ pt.Id = 11;
+ pt.Card = 1;
+ t.InPlaces.push_back(pt);
+ t.InOuPlaces.insert(11);
+ t.InOuPlaces.insert(11);
+ t.InOuPlaces.insert(1);
+ pt.Id = 1;
+ pt.Card = 1;
+ t.Places.push_back(pt);
+ se.InsertTran(20,t);
 
 //Transition T_trp_L_e
  t.InPlaces.clear();
@@ -471,16 +646,23 @@ int main(int argc, char **argv) {
  t.GenFun= "";
  t.FuncT=  nullptr;
  t.rate = 1.000000;
+ pt.Id = 7;
+ pt.Card = 1;
+ t.InPlaces.push_back(pt);
+ t.InOuPlaces.insert(7);
  pt.Id = 0;
  pt.Card = 1;
  t.InPlaces.push_back(pt);
  t.InOuPlaces.insert(0);
  t.InOuPlaces.insert(0);
  t.InOuPlaces.insert(16);
+ pt.Id = 7;
+ pt.Card = -1;
+ t.Places.push_back(pt);
  pt.Id = 16;
  pt.Card = 1;
  t.Places.push_back(pt);
- se.InsertTran(13,t);
+ se.InsertTran(21,t);
 
 //Transition T_val_L_e
  t.InPlaces.clear();
@@ -491,16 +673,23 @@ int main(int argc, char **argv) {
  t.GenFun= "";
  t.FuncT=  nullptr;
  t.rate = 1.000000;
+ pt.Id = 6;
+ pt.Card = 1;
+ t.InPlaces.push_back(pt);
+ t.InOuPlaces.insert(6);
  pt.Id = 0;
  pt.Card = 1;
  t.InPlaces.push_back(pt);
  t.InOuPlaces.insert(0);
  t.InOuPlaces.insert(0);
  t.InOuPlaces.insert(15);
+ pt.Id = 6;
+ pt.Card = -1;
+ t.Places.push_back(pt);
  pt.Id = 15;
  pt.Card = 1;
  t.Places.push_back(pt);
- se.InsertTran(14,t);
+ se.InsertTran(22,t);
 
 //Transition T_ile_L_e
  t.InPlaces.clear();
@@ -511,16 +700,23 @@ int main(int argc, char **argv) {
  t.GenFun= "";
  t.FuncT=  nullptr;
  t.rate = 1.000000;
+ pt.Id = 5;
+ pt.Card = 1;
+ t.InPlaces.push_back(pt);
+ t.InOuPlaces.insert(5);
  pt.Id = 0;
  pt.Card = 1;
  t.InPlaces.push_back(pt);
  t.InOuPlaces.insert(0);
  t.InOuPlaces.insert(0);
  t.InOuPlaces.insert(14);
+ pt.Id = 5;
+ pt.Card = -1;
+ t.Places.push_back(pt);
  pt.Id = 14;
  pt.Card = 1;
  t.Places.push_back(pt);
- se.InsertTran(15,t);
+ se.InsertTran(23,t);
 
 //Transition T_leu_L_e
  t.InPlaces.clear();
@@ -531,16 +727,23 @@ int main(int argc, char **argv) {
  t.GenFun= "";
  t.FuncT=  nullptr;
  t.rate = 1.000000;
+ pt.Id = 4;
+ pt.Card = 1;
+ t.InPlaces.push_back(pt);
+ t.InOuPlaces.insert(4);
  pt.Id = 0;
  pt.Card = 1;
  t.InPlaces.push_back(pt);
  t.InOuPlaces.insert(0);
  t.InOuPlaces.insert(0);
  t.InOuPlaces.insert(13);
+ pt.Id = 4;
+ pt.Card = -1;
+ t.Places.push_back(pt);
  pt.Id = 13;
  pt.Card = 1;
  t.Places.push_back(pt);
- se.InsertTran(16,t);
+ se.InsertTran(24,t);
 
 //Transition T_pro_L_e
  t.InPlaces.clear();
@@ -551,140 +754,341 @@ int main(int argc, char **argv) {
  t.GenFun= "";
  t.FuncT=  nullptr;
  t.rate = 1.000000;
+ pt.Id = 3;
+ pt.Card = 1;
+ t.InPlaces.push_back(pt);
+ t.InOuPlaces.insert(3);
  pt.Id = 0;
  pt.Card = 1;
  t.InPlaces.push_back(pt);
  t.InOuPlaces.insert(0);
  t.InOuPlaces.insert(0);
  t.InOuPlaces.insert(12);
+ pt.Id = 3;
+ pt.Card = -1;
+ t.Places.push_back(pt);
  pt.Id = 12;
  pt.Card = 1;
  t.Places.push_back(pt);
- se.InsertTran(17,t);
+ se.InsertTran(25,t);
 
-//Place EpithelialCells
+//Transition EX_cys_L_e_out
+ t.InPlaces.clear();
+ t.InhPlaces.clear();
+ t.InOuPlaces.clear();
+ t.Places.clear();
+ t.discrete= false;
+ t.GenFun= "FBA";
+ t.FuncT=  &FBA;
+ t.rate = 1.0;
+ t.InOuPlaces.insert(8);
+ pt.Id = 8;
+ pt.Card = 1;
+ t.Places.push_back(pt);
+ se.InsertTran(26,t);
+
+//Transition EX_trp_L_e_out
+ t.InPlaces.clear();
+ t.InhPlaces.clear();
+ t.InOuPlaces.clear();
+ t.Places.clear();
+ t.discrete= false;
+ t.GenFun= "FBA";
+ t.FuncT=  &FBA;
+ t.rate = 1.0;
+ t.InOuPlaces.insert(7);
+ pt.Id = 7;
+ pt.Card = 1;
+ t.Places.push_back(pt);
+ se.InsertTran(27,t);
+
+//Transition EX_val_L_e_out
+ t.InPlaces.clear();
+ t.InhPlaces.clear();
+ t.InOuPlaces.clear();
+ t.Places.clear();
+ t.discrete= false;
+ t.GenFun= "FBA";
+ t.FuncT=  &FBA;
+ t.rate = 1.0;
+ t.InOuPlaces.insert(6);
+ pt.Id = 6;
+ pt.Card = 1;
+ t.Places.push_back(pt);
+ se.InsertTran(28,t);
+
+//Transition EX_ile_L_e_out
+ t.InPlaces.clear();
+ t.InhPlaces.clear();
+ t.InOuPlaces.clear();
+ t.Places.clear();
+ t.discrete= false;
+ t.GenFun= "FBA";
+ t.FuncT=  &FBA;
+ t.rate = 1.0;
+ t.InOuPlaces.insert(5);
+ pt.Id = 5;
+ pt.Card = 1;
+ t.Places.push_back(pt);
+ se.InsertTran(29,t);
+
+//Transition EX_leu_L_e_in
+ t.InPlaces.clear();
+ t.InhPlaces.clear();
+ t.InOuPlaces.clear();
+ t.Places.clear();
+ t.discrete= false;
+ t.GenFun= "FBA";
+ t.FuncT=  &FBA;
+ t.rate = 1.0;
+ pt.Id = 4;
+ pt.Card = 1;
+ t.InPlaces.push_back(pt);
+ t.InOuPlaces.insert(4);
+ pt.Id = 4;
+ pt.Card = -1;
+ t.Places.push_back(pt);
+ se.InsertTran(30,t);
+
+//Transition EX_biomass_e_in
+ t.InPlaces.clear();
+ t.InhPlaces.clear();
+ t.InOuPlaces.clear();
+ t.Places.clear();
+ t.discrete= false;
+ t.GenFun= "FBA";
+ t.FuncT=  &FBA;
+ t.rate = 1.0;
+ pt.Id = 2;
+ pt.Card = 1;
+ t.InPlaces.push_back(pt);
+ t.InOuPlaces.insert(2);
+ pt.Id = 2;
+ pt.Card = -1;
+ t.Places.push_back(pt);
+ se.InsertTran(31,t);
+
+//Place IECs
  eq.clear();
  el.setIncDec(-1);
  el.setIdTran(3);
  eq.Insert(el);
- se.InsertEq(0,eq,0,0,2147483647);
+ Vpl.clear();
+ pt.Id = 11;
+ pt.Card = 1;
+ Vpl.push_back(pt);
+ pt.Id = -1;
+ pt.Card = 0;
+ Vpl.push_back(pt);
+ eq.Insert(Vpl);
+ se.InsertEq(0,eq,0,0,0);
 
 //Place pheme_e
  eq.clear();
  el.setIncDec(-1);
  el.setIdTran(0);
  eq.Insert(el);
+ el.setIncDec(-1);
+ el.setIdTran(11);
+ eq.Insert(el);
  el.setIncDec(1);
  el.setIdTran(12);
+ eq.Insert(el);
+ el.setIncDec(1);
+ el.setIdTran(19);
+ eq.Insert(el);
+ el.setIncDec(1);
+ el.setIdTran(20);
  eq.Insert(el);
  se.InsertEq(1,eq,0,0,2147483647);
 
 //Place BiomassCD
  eq.clear();
- se.InsertEq(2,eq,0,0,0);
+ el.setIncDec(1);
+ el.setIdTran(2);
+ eq.Insert(el);
+ el.setIncDec(-1);
+ el.setIdTran(5);
+ eq.Insert(el);
+ el.setIncDec(-1);
+ el.setIdTran(31);
+ eq.Insert(el);
+ se.InsertEq(2,eq,0,0,2147483647);
 
 //Place pro_L_e
  eq.clear();
  el.setIncDec(-1);
  el.setIdTran(1);
  eq.Insert(el);
+ el.setIncDec(1);
+ el.setIdTran(3);
+ eq.Insert(el);
+ el.setIncDec(1);
+ el.setIdTran(17);
+ eq.Insert(el);
+ el.setIncDec(-1);
+ el.setIdTran(25);
+ eq.Insert(el);
  se.InsertEq(3,eq,0,0,2147483647);
 
 //Place leu_L_e
  eq.clear();
+ el.setIncDec(1);
+ el.setIdTran(3);
+ eq.Insert(el);
+ el.setIncDec(1);
+ el.setIdTran(8);
+ eq.Insert(el);
+ el.setIncDec(1);
+ el.setIdTran(16);
+ eq.Insert(el);
  el.setIncDec(-1);
- el.setIdTran(7);
+ el.setIdTran(24);
+ eq.Insert(el);
+ el.setIncDec(-1);
+ el.setIdTran(30);
  eq.Insert(el);
  se.InsertEq(4,eq,0,0,2147483647);
 
 //Place ile_L_e
  eq.clear();
+ el.setIncDec(1);
+ el.setIdTran(3);
+ eq.Insert(el);
  el.setIncDec(-1);
- el.setIdTran(6);
+ el.setIdTran(7);
+ eq.Insert(el);
+ el.setIncDec(1);
+ el.setIdTran(15);
+ eq.Insert(el);
+ el.setIncDec(-1);
+ el.setIdTran(23);
+ eq.Insert(el);
+ el.setIncDec(1);
+ el.setIdTran(29);
  eq.Insert(el);
  se.InsertEq(5,eq,0,0,2147483647);
 
 //Place val_L_e
  eq.clear();
+ el.setIncDec(1);
+ el.setIdTran(3);
+ eq.Insert(el);
  el.setIncDec(-1);
- el.setIdTran(5);
+ el.setIdTran(6);
+ eq.Insert(el);
+ el.setIncDec(1);
+ el.setIdTran(14);
+ eq.Insert(el);
+ el.setIncDec(-1);
+ el.setIdTran(22);
+ eq.Insert(el);
+ el.setIncDec(1);
+ el.setIdTran(28);
  eq.Insert(el);
  se.InsertEq(6,eq,0,0,2147483647);
 
-//Place trp_e
+//Place trp_L_e
  eq.clear();
+ el.setIncDec(1);
+ el.setIdTran(3);
+ eq.Insert(el);
  el.setIncDec(-1);
- el.setIdTran(9);
+ el.setIdTran(10);
+ eq.Insert(el);
+ el.setIncDec(1);
+ el.setIdTran(13);
+ eq.Insert(el);
+ el.setIncDec(-1);
+ el.setIdTran(21);
+ eq.Insert(el);
+ el.setIncDec(1);
+ el.setIdTran(27);
  eq.Insert(el);
  se.InsertEq(7,eq,0,0,2147483647);
 
-//Place cys_e
+//Place cys_L_e
  eq.clear();
+ el.setIncDec(1);
+ el.setIdTran(3);
+ eq.Insert(el);
+ el.setIncDec(1);
+ el.setIdTran(4);
+ eq.Insert(el);
  el.setIncDec(-1);
- el.setIdTran(8);
+ el.setIdTran(9);
+ eq.Insert(el);
+ el.setIncDec(-1);
+ el.setIdTran(18);
+ eq.Insert(el);
+ el.setIncDec(1);
+ el.setIdTran(26);
  eq.Insert(el);
  se.InsertEq(8,eq,0,0,2147483647);
 
 //Place Drug
  eq.clear();
  el.setIncDec(-1);
- el.setIdTran(10);
+ el.setIdTran(11);
  eq.Insert(el);
  se.InsertEq(9,eq,0,0,2147483647);
 
 //Place OxiStress
  eq.clear();
  el.setIncDec(-1);
- el.setIdTran(4);
+ el.setIdTran(5);
  eq.Insert(el);
  el.setIncDec(1);
- el.setIdTran(10);
+ el.setIdTran(11);
  eq.Insert(el);
  se.InsertEq(10,eq,0,0,2147483647);
 
 //Place Damage
  eq.clear();
+ el.setIncDec(1);
+ el.setIdTran(3);
+ eq.Insert(el);
  se.InsertEq(11,eq,0,0,0);
 
 //Place pro_L_v
  eq.clear();
  el.setIncDec(1);
- el.setIdTran(17);
+ el.setIdTran(25);
  eq.Insert(el);
  se.InsertEq(12,eq,0,0,2147483647);
 
 //Place leu_L_v
  eq.clear();
  el.setIncDec(1);
- el.setIdTran(16);
+ el.setIdTran(24);
  eq.Insert(el);
  se.InsertEq(13,eq,0,0,2147483647);
 
 //Place ile_L_v
  eq.clear();
  el.setIncDec(1);
- el.setIdTran(15);
+ el.setIdTran(23);
  eq.Insert(el);
  se.InsertEq(14,eq,0,0,2147483647);
 
 //Place val_L_v
  eq.clear();
  el.setIncDec(1);
- el.setIdTran(14);
+ el.setIdTran(22);
  eq.Insert(el);
  se.InsertEq(15,eq,0,0,2147483647);
 
 //Place trp_L_v
  eq.clear();
  el.setIncDec(1);
- el.setIdTran(13);
+ el.setIdTran(21);
  eq.Insert(el);
  se.InsertEq(16,eq,0,0,2147483647);
 
 //Place cys_L_v
  eq.clear();
  el.setIncDec(1);
- el.setIdTran(11);
+ el.setIdTran(18);
  eq.Insert(el);
  se.InsertEq(17,eq,0,0,2147483647);
 
