@@ -8,7 +8,7 @@
       <transition delay="FN:FBA" label-y="1.5" name="EX_pro_L_e_in" rotation="1.5707963267948966" type="GEN" x="37.55" y="73.0"/>
       <transition delay="FN:FBA" label-y="3.0" name="EX_biomass_e_out" rotation="1.5707963267948966" type="GEN" x="12.55" y="73.0"/>
       <place label-x="4.5" label-y="0.0" name="BiomassCD" x="9.0" y="55.0"/>
-      <transition label-y="-2.0" name="IECsDeath" nservers-x="0.5" rotation="3.141592653589793" type="EXP" x="23.55" y="18.0"/>
+      <transition delay="FN:IECDeath " label-y="-2.0" name="IECsDeath" rotation="3.141592653589793" type="GEN" x="23.55" y="18.0"/>
       <place label-x="3.5" label-y="0.0" name="pro_L_e" x="40.0" y="55.0"/>
       <place label-x="4.0" label-y="0.0" name="leu_L_e" x="48.0" y="55.0"/>
       <place label-x="3.5" label-y="0.0" name="ile_L_e" x="60.0" y="55.0"/>

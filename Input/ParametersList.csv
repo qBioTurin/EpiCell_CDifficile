@@ -1,13 +1,15 @@
+i; init; init.gen; n_file="/home/docker/data/Input/NAMES.RDS"
 g; FBAfile ; FBA.generation; model = "/home/docker/data/Input/FinalMatrix.RData"; load=T
 g; ReactNames; saveNames; model = "/home/docker/data/Input/CD196_heme.RData"
 g; VmaxValues; saveMMConstant; type = "Vmax"
 g; KMValues; saveMMConstant; type = "KM"
 g; gDW_CDmax; 3.977824e-12
-i; init; init.gen; n_file="/home/docker/data/Input/NAMES.RDS"
-c; IECsDeath; 1
+g; gDW_IEC; 10e−9
+g; drIECs; 0.1 * 10e−21
+g; drCD; 0.21 * 10e−21
 c; DeathCD; 1
 c; DrugAction; 0.001
-c; Inflammation; 1
+c; Inflammation; 10e−6
 c; T_cys_L_e; 1
 c; T_trp_L_e; 1
 c; T_val_L_e; 1

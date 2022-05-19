@@ -43,9 +43,12 @@ static unordered_map <string, int> ReactionsNames;
 static double Flag = -1;
 double rate = 0;
 static double gDW_CDmax=0;
+static double gDW_IEC=0;
 static map <string, string> FBAmet;
 static unordered_map <string, double> Vmax;
 static unordered_map <string, double> KM;
+static double Ktoxin = 0;
+static double drIECs = 0;
 
 /* Read data from file and fill a map<string,int> */
 void read_map_string_int(string fname, unordered_map<string,int>& m)
@@ -141,9 +144,11 @@ void init_data_structures()
 {
 	read_map_string_int("./ReactNames", ReactionsNames);
 	read_constant("./gDW_CDmax", gDW_CDmax);
+	read_constant("./gDW_IEC", gDW_IEC);
 
 	read_map_string_double("./VmaxValues", Vmax);
 	read_map_string_double("./KMValues", KM);
+	read_map_string_double("./drIECs", drIECs);
 
 	FBAmet["EX_biomass_e_in"] = "EX_biomass(e)";
 	FBAmet["EX_pheme_e_in"] = "EX_pheme(e)";
@@ -243,3 +248,25 @@ double FBA(double *Value,
 
 	return(rate);
 }
+
+double IECDeath(double *Value,
+           map <string,int>& NumTrans,
+           map <string,int>& NumPlaces,
+           const vector<string> & NameTrans,
+           const struct InfTr* Trans,
+           const int T,
+           const double& time)
+{
+
+	if( Flag == -1)   init_data_structures();
+
+	double rate = 0;
+	double Den = BiomassCD + Ktoxin;
+	double IECs = Value[NumPlaces.find("IECs") -> second];
+	double BiomassCD = Value[NumPlaces.find("BiomassCD") -> second];
+
+	(BiomassCD + drIECs)/Den * IECs * gDW_IEC
+	(BiomassCD)/Den * IECs * gDW_IEC
+
+}
+
