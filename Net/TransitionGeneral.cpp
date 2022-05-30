@@ -47,8 +47,14 @@ static double gDW_IEC=0;
 static map <string, string> FBAmet;
 static unordered_map <string, double> Vmax;
 static unordered_map <string, double> KM;
-static double Ktoxin = 0;
-static double drIECs = 0;
+const double pi = boost::math::constants::pi<double>();
+// Constants for Inflammation transition
+static double Inflammation = 0;
+static double DAMAGEmax = 0;
+// Constants for Death4Treat transition
+static double .. = 0;
+static double .. = 0;
+
 
 /* Read data from file and fill a map<string,int> */
 void read_map_string_int(string fname, unordered_map<string,int>& m)
@@ -146,9 +152,9 @@ void init_data_structures()
 	read_constant("./gDW_CDmax", gDW_CDmax);
 	read_constant("./gDW_IEC", gDW_IEC);
 
-	read_map_string_double("./VmaxValues", Vmax);
-	read_map_string_double("./KMValues", KM);
-	read_map_string_double("./drIECs", drIECs);
+	read_constant("./Inflammation_rate",Inflammation);
+  read_constant("./DAMAGEmax_rate",DAMAGEmax);
+
 
 	FBAmet["EX_biomass_e_in"] = "EX_biomass(e)";
 	FBAmet["EX_pheme_e_in"] = "EX_pheme(e)";
@@ -249,7 +255,8 @@ double FBA(double *Value,
 	return(rate);
 }
 
-double IECDeath(double *Value,
+// Inflam transition
+double Heam(double *Value,
            map <string,int>& NumTrans,
            map <string,int>& NumPlaces,
            const vector<string> & NameTrans,
@@ -261,12 +268,86 @@ double IECDeath(double *Value,
 	if( Flag == -1)   init_data_structures();
 
 	double rate = 0;
-	double Den = BiomassCD + Ktoxin;
-	double IECs = Value[NumPlaces.find("IECs") -> second];
-	double BiomassCD = Value[NumPlaces.find("BiomassCD") -> second];
 
-	(BiomassCD + drIECs)/Den * IECs * gDW_IEC
-	(BiomassCD)/Den * IECs * gDW_IEC
+	int DamagePlace = Value[NumPlaces.find("Damage") -> second];
+
+	double PercDamage = DamagePlace/DAMAGEmax;
+	double g = 0;
+
+	if(PercDamage < 0 & PercDamage > 1 ){
+
+	}
+	else if(PercDamage>0.1 & PercDamage <= 0.7){
+		g = 1/2;
+	}
+	else if(PercDamage > 0.7){
+		g = 1;
+	}
+
+	rate = g * Inflammation;
+	return(rate);
+}
+
+// Death4Treat transition
+double Therapy(double *Value,
+            map <string,int>& NumTrans,
+            map <string,int>& NumPlaces,
+            const vector<string> & NameTrans,
+            const struct InfTr* Trans,
+            const int T,
+            const double& time)
+{
+
+	if( Flag == -1)   init_data_structures();
+
+	double rate = 0;
 
 }
 
+// DeathBac transition
+double DeathCD(double *Value,
+            map <string,int>& NumTrans,
+            map <string,int>& NumPlaces,
+            const vector<string> & NameTrans,
+            const struct InfTr* Trans,
+            const int T,
+            const double& time)
+{
+
+	if( Flag == -1)   init_data_structures();
+
+	double rate = 0;
+
+}
+
+// Dup transition
+double Duplication(double *Value,
+            map <string,int>& NumTrans,
+            map <string,int>& NumPlaces,
+            const vector<string> & NameTrans,
+            const struct InfTr* Trans,
+            const int T,
+            const double& time)
+{
+
+	if( Flag == -1)   init_data_structures();
+
+	double rate = 0;
+
+}
+
+// Starv transition
+double Starvation(double *Value,
+            map <string,int>& NumTrans,
+            map <string,int>& NumPlaces,
+            const vector<string> & NameTrans,
+            const struct InfTr* Trans,
+            const int T,
+            const double& time)
+{
+
+	if( Flag == -1)   init_data_structures();
+
+	double rate = 0;
+
+}
