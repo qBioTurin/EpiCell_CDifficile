@@ -1,0 +1,151 @@
+
+
+--------------------------------------------------------------------
+                      Generation ODE/SDE model
+--------------------------------------------------------------------
+
+
+#Computing p-semiflows and place bounds: 
+
+Place invariants for net /home/EpitCellDifficile:
+
+   IECs   Damage
+
+Only 2 places out of 18 are covered by some P-invariant.
+
+The following places are not covered by any P-invariant:
+
+ pheme_e BiomassCD pro_L_e leu_L_e ile_L_e val_L_e trp_L_e cys_L_e Drug OxiStress pro_L_v leu_L_v ile_L_v val_L_v trp_L_v cys_L_v
+
+/usr/local/GreatSPN/bin/PN2ODE /home/EpitCellDifficile -M
+
+
+ =========================================================
+|	      	        PN to ODE        	          |
+ =========================================================
+
+ If you find any bug, send an email to beccuti@di.unito.it!
+Transition EX_pheme_e_in has function:  FN:FBA
+
+Transition EX_pro_L_e has function:  FN:FBA
+
+Transition EX_biomass_e_out has function:  FN:FBA
+
+Transition EX_val_L_e_in has function:  FN:FBA
+
+Transition EX_ile_L_e_in has function:  FN:FBA
+
+Transition EX_leu_L_e_out has function:  FN:FBA
+
+Transition EX_cys_L_e_in has function:  FN:FBA
+
+Transition EX_trp_L_e_in has function:  FN:FBA
+
+Transition EX_pheme_e_out has function:  FN:FBA
+
+Transition EX_cys_L_e_out has function:  FN:FBA
+
+Transition EX_trp_L_e_out has function:  FN:FBA
+
+Transition EX_val_L_e_out has function:  FN:FBA
+
+Transition EX_ile_L_e_out has function:  FN:FBA
+
+Transition EX_leu_L_e_in has function:  FN:FBA
+
+Transition EX_biomass_e_in has function:  FN:FBA
+
+
+
+------------------------------------------------
+               Start  encoding
+------------------------------------------------
+
+Opening file: /home/EpitCellDifficile.bnd
+Opening file: /home/EpitCellDifficile.pin
+Number of P-invs: 1
+
+	P-invariant: 
+	 1 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 | 0
+	
+	U
+	 1 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 | 0
+	
+	L
+	 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+	
+	P
+	 0
+
+START EXECUTION...
+FN:FBA
+
+FN:FBA
+
+FN:FBA
+
+FN:FBA
+
+FN:FBA
+
+FN:FBA
+
+FN:FBA
+
+FN:FBA
+
+FN:FBA
+
+FN:FBA
+
+FN:FBA
+
+FN:FBA
+
+FN:FBA
+
+FN:FBA
+
+FN:FBA
+
+	Done.
+
+------------------------------------------------
+                 End encoding
+------------------------------------------------
+
+
+===================== INFO =====================
+ Total Time: 0.002053 sec
+ Total Used Memory: 3772KB
+ Output saved in: EpitCellDifficile.cpp
+================================================
+
+PN2ODE solution
+/home/EpitCellDifficile
+#cd /usr/local/GreatSPN/scripts/../inst_src
+#Copying file form /usr/local/GreatSPN/scripts/../inst_src to /tmp/tmp.sOeuFn2lAW
+
+#cat /tmp/tmp.sOeuFn2lAW/tmpB  /home/TransitionGeneral.cpp  /tmp/tmp.sOeuFn2lAW/tmpE >> /tmp/tmp.sOeuFn2lAW/tmpA
+FuncT
+#cat /tmp/tmp.sOeuFn2lAW/tmpA >>  /tmp/tmp.sOeuFn2lAW/class.cpp
+
+#cd /tmp/tmp.sOeuFn2lAW
+
+#Compiling ... 
+g++ -D CGLPK -I./  -o  /home/EpitCellDifficile.solver  /home/EpitCellDifficile.cpp  ./class.cpp  ./lsode.cpp ./GLPKsolve.cpp ./general.cpp -O3 -std=c++11 -lm -Wall -lglpk
+./class.cpp: In function 'double SDE::FBA(double*, std::map<std::__cxx11::basic_string<char>, int>&, std::map<std::__cxx11::basic_string<char>, int>&, const std::vector<std::__cxx11::basic_string<char> >&, const SDE::InfTr*, int, const double&)':
+./class.cpp:3989:40: error: no match for 'operator[]' (operand types are 'double*' and 'std::map<std::__cxx11::basic_string<char>, int>::iterator' {aka 'std::_Rb_tree<std::__cxx11::basic_string<char>, std::pair<const std::__cxx11::basic_string<char>, int>, std::_Select1st<std::pair<const std::__cxx11::basic_string<char>, int> >, std::less<std::__cxx11::basic_string<char> >, std::allocator<std::pair<const std::__cxx11::basic_string<char>, int> > >::iterator'})
+ 3989 |                         int Met = Value[NumPlaces.find("place name")] -> second;
+      |                                        ^
+./class.cpp:3992:25: error: expected ',' or ';' before 'double'
+ 3992 |                         double Ub = l.getUpBounds(index);
+      |                         ^~~~~~
+./class.cpp:3994:62: error: 'Ub' was not declared in this scope; did you mean 'Lb'?
+ 3994 |                         l.update_bound(index, TypeBound, Lb, Ub);
+      |                                                              ^~
+      |                                                              Lb
+make: *** [makefile:31: fluxb] Error 1
+#Error during compilation. 
+
+

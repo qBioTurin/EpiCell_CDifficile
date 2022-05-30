@@ -42,8 +42,8 @@ static double FBAtime = -1;
 static unordered_map <string, int> ReactionsNames;
 static double Flag = -1;
 double rate = 0;
-static double gDW_CDmax=0;
-static double gDW_IEC=0;
+static double gDW_CDmax = 0;
+static double gDW_IEC = 0;
 static map <string, string> FBAmet;
 static unordered_map <string, double> Vmax;
 static unordered_map <string, double> KM;
@@ -52,9 +52,20 @@ const double pi = boost::math::constants::pi<double>();
 static double Inflammation = 0;
 static double DAMAGEmax = 0;
 // Constants for Death4Treat transition
-static double .. = 0;
-static double .. = 0;
-
+static double Emax = 0
+static double Imax = 0
+static double Mmtz = 0
+static double Na = 0
+static double Drug50 = 0
+static double K50 = 0
+// Constants for DeathBac transition
+static double gDW_CDmin = 0;
+static double h = 0;
+// Constants for Dup transition
+static double rCDdup = 0;
+static double gDW_CDmax = 0;
+// Constants for Starv transition
+static double RCD = 0;
 
 /* Read data from file and fill a map<string,int> */
 void read_map_string_int(string fname, unordered_map<string,int>& m)
@@ -99,11 +110,11 @@ void read_map_string_double(string fname, unordered_map<string,double>& m)
 			// read rates
 			length = line.length();
 
-				pos = line.find(',');
-				if( pos == string::npos)
-					pos = length;
-				m.insert(pair<string,double>(line.substr(0,pos) , stod(line.substr(pos+1,length))) );
-				cout <<line.substr(0,pos) << ": " << stod(line.substr(pos+1,length)) << " ";
+			pos = line.find(',');
+			if( pos == string::npos)
+				pos = length;
+			m.insert(pair<string,double>(line.substr(0,pos) , stod(line.substr(pos+1,length))) );
+			cout <<line.substr(0,pos) << ": " << stod(line.substr(pos+1,length)) << " ";
 			cout << endl;
 			++j;
 		}
@@ -149,12 +160,24 @@ LPprob l(str.c_str());
 void init_data_structures()
 {
 	read_map_string_int("./ReactNames", ReactionsNames);
+
 	read_constant("./gDW_CDmax", gDW_CDmax);
+	read_constant("./gDW_CDmean", gDW_CDmean);
+	read_constant("./gDW_CDmin", gDW_CDmin);
+
 	read_constant("./gDW_IEC", gDW_IEC);
 
-	read_constant("./Inflammation_rate",Inflammation);
-  read_constant("./DAMAGEmax_rate",DAMAGEmax);
+	read_constant("./Inflammation_rate", Inflammation);
+	read_constant("./DAMAGEmax_rate", DAMAGEmax);
 
+	read_constant("./Emax", Emax);
+	read_constant("./Imax", Imax);
+	read_constant("./Mmtz",Mmtz);
+	read_constant("./Na", Na);
+	read_constant("./Drug50", Drug50);
+	read_constant("./K50", K50);
+
+	read_constant("./h", h);
 
 	FBAmet["EX_biomass_e_in"] = "EX_biomass(e)";
 	FBAmet["EX_pheme_e_in"] = "EX_pheme(e)";
@@ -201,8 +224,8 @@ double FBA(double *Value,
 			}else{
 				double Met = Value[Trans[NumTrans.find(p->first) -> second].InPlaces[0].Id];
 				cout<< "Trans: " <<  p->first << ", MEt input: " << Met <<";" << endl;
-				Lb = (- (Vmax.find(p->first) -> second) * Met) / ((KM.find(p->first) -> second) + Met);
-				}
+				Lb = (- (Vmax.find(p->first) -> second) * (Met/Na)) / ((KM.find(p->first) -> second) + (Met/Na));
+			}
 			l.update_bound(index, TypeBound, Lb, Ub);
 		}
 
@@ -243,26 +266,25 @@ double FBA(double *Value,
 		rate = -rate ;
 
 	cout << NameTrans[T] << " transition with " <<
-			FBAmet.find(str) -> second << " flux: " << Vars[indexR] <<
-				"(rate: "<< rate << ")" << endl;
+		FBAmet.find(str) -> second << " flux: " << Vars[indexR] <<
+			"(rate: "<< rate << ")" << endl;
 
 	if(rate < 0){
 		cout << "WARNING: the rate is negative!!!! see transition: " << NameTrans[T] << endl;
 		rate = -rate;
 	}
 
-
 	return(rate);
 }
 
 // Inflam transition
 double Heam(double *Value,
-           map <string,int>& NumTrans,
-           map <string,int>& NumPlaces,
-           const vector<string> & NameTrans,
-           const struct InfTr* Trans,
-           const int T,
-           const double& time)
+            map <string,int>& NumTrans,
+            map <string,int>& NumPlaces,
+            const vector<string> & NameTrans,
+            const struct InfTr* Trans,
+            const int T,
+            const double& time)
 {
 
 	if( Flag == -1)   init_data_structures();
@@ -278,7 +300,7 @@ double Heam(double *Value,
 
 	}
 	else if(PercDamage>0.1 & PercDamage <= 0.7){
-		g = 1/2;
+		g = 1/3;
 	}
 	else if(PercDamage > 0.7){
 		g = 1;
@@ -290,64 +312,101 @@ double Heam(double *Value,
 
 // Death4Treat transition
 double Therapy(double *Value,
-            map <string,int>& NumTrans,
-            map <string,int>& NumPlaces,
-            const vector<string> & NameTrans,
-            const struct InfTr* Trans,
-            const int T,
-            const double& time)
+               map <string,int>& NumTrans,
+               map <string,int>& NumPlaces,
+               const vector<string> & NameTrans,
+               const struct InfTr* Trans,
+               const int T,
+               const double& time)
 {
 
 	if( Flag == -1)   init_data_structures();
 
 	double rate = 0;
+
+	int DrugPlace = Value[NumPlaces.find("Drug") -> second];
+	int CDPlace = Value[NumPlaces.find("CD") -> second];
+	int HemePlace = Value[NumPlaces.find("pheme_e") -> second];
+
+	rate = (Emax*DrugPlace*CDPlace)/(((Mmtz*Na)/(Drug50*((Imax*HemePlace)/(K50 + HemePlace))))+DrugPlace)
+
+	return(rate);
 
 }
 
 // DeathBac transition
 double DeathCD(double *Value,
-            map <string,int>& NumTrans,
-            map <string,int>& NumPlaces,
-            const vector<string> & NameTrans,
-            const struct InfTr* Trans,
-            const int T,
-            const double& time)
+               map <string,int>& NumTrans,
+               map <string,int>& NumPlaces,
+               const vector<string> & NameTrans,
+               const struct InfTr* Trans,
+               const int T,
+               const double& time)
 {
 
 	if( Flag == -1)   init_data_structures();
 
 	double rate = 0;
+
+	int BiomassCDPlace = Value[NumPlaces.find("BiomassCD") -> second];
+	int CDPlace = Value[NumPlaces.find("CD") -> second];
+
+	if(BiomassCDPlace - gDW_CDmin > 0){
+
+	}
+	else (BiomassCDPlace - gDW_CDmin <= 0){
+		rate = h*CDPlace
+	}
+
+	return(rate);
 
 }
 
 // Dup transition
 double Duplication(double *Value,
-            map <string,int>& NumTrans,
-            map <string,int>& NumPlaces,
-            const vector<string> & NameTrans,
-            const struct InfTr* Trans,
-            const int T,
-            const double& time)
+                   map <string,int>& NumTrans,
+                   map <string,int>& NumPlaces,
+                   const vector<string> & NameTrans,
+                   const struct InfTr* Trans,
+                   const int T,
+                   const double& time)
 {
 
 	if( Flag == -1)   init_data_structures();
 
 	double rate = 0;
+
+	int BiomassCDPlace = Value[NumPlaces.find("BiomassCD") -> second];
+
+	rate = rCDdup*(gDW_CDmax/(BiomassCDPlace- (rCDdup/2)))
+
+	return(rate);
 
 }
 
 // Starv transition
 double Starvation(double *Value,
-            map <string,int>& NumTrans,
-            map <string,int>& NumPlaces,
-            const vector<string> & NameTrans,
-            const struct InfTr* Trans,
-            const int T,
-            const double& time)
+                  map <string,int>& NumTrans,
+                  map <string,int>& NumPlaces,
+                  const vector<string> & NameTrans,
+                  const struct InfTr* Trans,
+                  const int T,
+                  const double& time)
 {
 
 	if( Flag == -1)   init_data_structures();
 
 	double rate = 0;
+
+	int BiomassCDPlace = Value[NumPlaces.find("BiomassCD") -> second];
+
+	if(BiomassCDPlace - FBABiomassEXoutflux = 0){
+		rate = RCD*BiomassCDPlace
+	}
+	else (BiomassCDPlace - gDW_CDmin <= 0){
+
+	}
+
+	return(rate);
 
 }
