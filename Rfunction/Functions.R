@@ -1,15 +1,36 @@
 init.gen <- function(n_file)
 {
 	yini.names <- readRDS(n_file)
-	y_ini <- c(4.57*10^5, 0,
-						 (1/3)*((3.14*0.5^2)/4)*(((4*0.5)/6)+5.5)*(1.3*10^-12)*(4.57*10^5)*100,
-						 0.001, 2.35, 0.27, 0.13, 0.25, 0.05,
-						 0.13, 0, 0.17116*16, 0.36, 0.57,
-						 0.32, 0.58, 0.1, 0.1)
+	y_ini <- c(
+		# IECs
+		4.57e05,
+		# Damage
+		0,
+		# BiomassCD
+		4.57e05*100*(1/3)*(((pi*(0.5)^2)/4)*(((4*0.5)/6) + 5.5))*1.3e-12,
+		# CD
+		4.57e05*100,
+		# Drug
+		0.17116*6.022e20*0.15e-06,
+		# pheme_e
+		3.5e-04*6.022e20,
+		# pro_L_e
+		0.36*6.022e20,
+		# leu_L_e
+		0.57*6.022e20,
+		# ile_L_e
+		0.32*6.022e20,
+		# val_L_e
+		0.58*6.022e20,
+		# trp_L_e
+		0.098*6.022e20,
+		# cys_L_e
+		0.25*6.022e20,
+		0, 0, 0, 0, 0, 0)
 
-	names(y_ini) <- c("IECs", "Damage", "BiomassCD", "pheme_e", "pro_L_v", "leu_L_v", "ile_L_v", "val_L_v",
-										"trp_L_v", "cys_L_v", "OxiStress", "Drug", "pro_L_e", "leu_L_e",
-										"ile_L_e", "val_L_e", "trp_L_e", "cys_L_e")
+	names(y_ini) <- c("IECs", "Damage", "BiomassCD", "CD", "pheme_e", "Drug",
+										"pro_L_e", "leu_L_e", "ile_L_e", "val_L_e", "trp_L_e", "cys_L_e",
+										"pro_L_v", "leu_L_v", "ile_L_v", "val_L_v", "trp_L_v", "cys_L_v")
 
 	y_ini = y_ini[yini.names]
 	return(y_ini)
@@ -106,8 +127,10 @@ saveMMConstant = function(type) {
 	met.name = c("EX_pheme_e_in", "EX_pro_L_e_in", "EX_leu_L_e_in", "EX_ile_L_e_in",
 							 "EX_val_L_e_in", "EX_trp_L_e_in", "EX_cys_L_e_in")
 
-	Vmax = c(1, 1, 1, 1, 1, 1, 1)
-	KM = c(1, 1, 1, 1, 1, 1, 1)
+	Vmax = c(0.01,
+					 0.01, 0.01, 0.01, 0.01, 0.01, 0.01)
+	KM = c(0.005,
+				 0.005, 0.005, 0.005, 0.005, 0.005, 0.005)
 
 	if(type == "KM"){
 		y = data.frame(met.name, KM)
@@ -116,4 +139,86 @@ saveMMConstant = function(type) {
 	}
 
 	return(y)
+}
+
+InflammationFunction = function(gamma) {
+
+	Dv = 0.03 #[mm]
+	Vrbc = 1.1e04 #[mm/h]
+	RHOrbc = 5 # [cell/muL]
+	HeamRBC = 5e09 # [molecule]
+	Aw = 1.13e-04 # [m^2]
+	W = 0.1 # [mm]
+	L = 1 # [mm]
+	EM = 13 # [unit]
+
+	Inflam = gamma*pi*(Dv/2)^2*(Vrbc*RHOrbc*HeamRBC*Aw/2*pi*(W/2)*L*EM)
+	return(Inflam)
+
+}
+
+ComputeBiomassBac = function(diameter, length) {
+
+	mass = (1/3)*(((pi*(diameter)^2)/4)*(((4*diameter)/6) + length))*1.3e-12
+
+	return(mass)
+}
+
+EvalDiet = function(diet, ex) {
+
+	Lin = 291 # [cm]
+	Din = 2.5 # [cm]
+	P = 1.57 # [unit]
+	LM = 6.5 # [unit]
+	EM = 13 # [unit]
+
+	Ain = pi*Lin*Din*P*LM*EM*1e-04 # [m^2]
+
+	if (is.null(diet)) {
+		vheme = 1.14 # [g/(day*person)]
+		Na = 6.022e20 # [molecule]
+		Aw = 1.13e-04 # [m^2]
+		Mpheme = 0.616487 # [g/mmol]
+
+		vD = (vheme*Na)/(Mpheme*24)*((Ain/Aw)^(-1))
+	} else {
+
+		diet = readr::read_delim(paste0("./Input/", diet, ".tsv", sep=""),
+														 "\t", escape_double = FALSE, trim_ws = TRUE)
+
+		diet[["Reaction"]] = gsub("\\(", replacement = "_", diet[["Reaction"]])
+		diet[["Reaction"]] = gsub("\\)", replacement = "", diet[["Reaction"]])
+
+		diet[["Reaction"]] = gsub("\\[", replacement = "_", diet[["Reaction"]])
+		diet[["Reaction"]] = gsub("\\]", replacement = "", diet[["Reaction"]])
+
+		vD = ((diets[[diet]][["Flux Value"]][ex]*Na)/24)*((Ain/Aw)^(-1))
+	}
+	return(vD)
+}
+
+EvalTransport = function(yield) {
+
+	IECs_t0 = 4.57e05
+	vT = yield/IECs_t0
+}
+
+EvalTreat = function(dose){
+
+	Mmtz = 0.17116 # [g/mmol]
+	Na = 6.022e20 # [molecule]
+	Aw = 1.13e-04 # [m^2]
+
+	Lin = 291 # [cm]
+	Din = 2.5 # [cm]
+	P = 1.57 # [unit]
+	LM = 6.5 # [unit]
+	EM = 13 # [unit]
+
+	Ain = pi*Lin*Din*P*LM*EM*1e-04 # [m^2]
+
+	ther = (1/2)*((Mmtz*Na)/dose)*((Ain/Aw)^(-1))
+
+	return(ther)
+
 }
