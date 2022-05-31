@@ -157,9 +157,9 @@ InflammationFunction = function(gamma) {
 
 }
 
-ComputeBiomassBac = function(diameter, length) {
+ComputeBiomassBac = function(diameter, len) {
 
-	mass = (1/3)*(((pi*(diameter)^2)/4)*(((4*diameter)/6) + length))*1.3e-12
+	mass = (1/3)*(((pi*(diameter)^2)/4)*(((4*diameter)/6) + len))*1.3e-12
 
 	return(mass)
 }
@@ -172,27 +172,35 @@ EvalDiet = function(diet, ex) {
 	LM = 6.5 # [unit]
 	EM = 13 # [unit]
 
+	vheme = 1.14 # [g/(day*person)]
+	Na = 6.022e20 # [molecule]
+	Aw = 1.13e-04 # [m^2]
+	Mpheme = 0.616487 # [g/mmol]
+
 	Ain = pi*Lin*Din*P*LM*EM*1e-04 # [m^2]
 
 	if (is.null(diet)) {
-		vheme = 1.14 # [g/(day*person)]
-		Na = 6.022e20 # [molecule]
-		Aw = 1.13e-04 # [m^2]
-		Mpheme = 0.616487 # [g/mmol]
 
 		vD = (vheme*Na)/(Mpheme*24)*((Ain/Aw)^(-1))
+
 	} else {
 
-		diet = readr::read_delim(paste0("./Input/", diet, ".tsv", sep=""),
-														 "\t", escape_double = FALSE, trim_ws = TRUE)
+		# diet = readr::read_delim(paste0("./Input/", diet, ".tsv", sep=""), "\t", escape_double = FALSE, trim_ws = TRUE)
 
-		diet[["Reaction"]] = gsub("\\(", replacement = "_", diet[["Reaction"]])
-		diet[["Reaction"]] = gsub("\\)", replacement = "", diet[["Reaction"]])
+		# diet[["Reaction"]] = gsub("\\(", replacement = "_", diet[["Reaction"]])
+		# diet[["Reaction"]] = gsub("\\)", replacement = "", diet[["Reaction"]])
 
-		diet[["Reaction"]] = gsub("\\[", replacement = "_", diet[["Reaction"]])
-		diet[["Reaction"]] = gsub("\\]", replacement = "", diet[["Reaction"]])
+		# diet[["Reaction"]] = gsub("\\[", replacement = "_", diet[["Reaction"]])
+		# diet[["Reaction"]] = gsub("\\]", replacement = "", diet[["Reaction"]])
 
-		vD = ((diets[[diet]][["Flux Value"]][ex]*Na)/24)*((Ain/Aw)^(-1))
+		# diet[["Flux Value"]][c("EX_cys_L_e", "EX_trp_L_e", "EX_val_L_e", "EX_ile_L_e", "EX_leu_L_e", "EX_pro_L_e") %in% ex]
+
+		fluxes = data.frame(Reaction = c("EX_cys_L_e", "EX_trp_L_e", "EX_val_L_e",
+																		 "EX_ile_L_e", "EX_leu_L_e", "EX_pro_L_e"),
+												Flux = c(7.511832, 28.921675, 46.887810,
+																 53.815279, 4.554825, 37.784377))
+
+		vD = ((fluxes$Flux[fluxes$Reaction == ex]*Na)/24)*((Ain/Aw)^(-1))
 	}
 	return(vD)
 }
