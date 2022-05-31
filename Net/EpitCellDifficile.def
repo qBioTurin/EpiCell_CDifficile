@@ -4,6 +4,8 @@ FN:FBA
 FN:FBA
 |3 
 FN:FBA
+|6 
+FN:Therapy
 |7 
 FN:FBA
 |8 
@@ -14,7 +16,11 @@ FN:FBA
 FN:FBA
 |11 
 FN:FBA
+|19 
+FN:FBA
 |20 
+FN:Heam
+|26 
 FN:FBA
 |27 
 FN:FBA
@@ -27,7 +33,11 @@ FN:FBA
 |31 
 FN:FBA
 |32 
-FN:FBA
+FN:Starvation
+|33 
+FN:DeathCD
+|35 
+FN:Duplication
 |256
 %
 |

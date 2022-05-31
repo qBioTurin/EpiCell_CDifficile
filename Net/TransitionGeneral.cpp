@@ -47,23 +47,21 @@ static double gDW_IEC = 0;
 static map <string, string> FBAmet;
 static unordered_map <string, double> Vmax;
 static unordered_map <string, double> KM;
-const double pi = boost::math::constants::pi<double>();
 // Constants for Inflammation transition
 static double Inflammation = 0;
 static double DAMAGEmax = 0;
 // Constants for Death4Treat transition
-static double Emax = 0
-static double Imax = 0
-static double Mmtz = 0
-static double Na = 0
-static double Drug50 = 0
-static double K50 = 0
+static double Emax = 0;
+static double Imax = 0;
+static double Mmtz = 0;
+static double Na = 0;
+static double Drug50 = 0;
+static double K50 = 0;
 // Constants for DeathBac transition
 static double gDW_CDmin = 0;
 static double h = 0;
 // Constants for Dup transition
 static double rCDdup = 0;
-static double gDW_CDmax = 0;
 // Constants for Starv transition
 static double RCD = 0;
 
@@ -99,14 +97,13 @@ void read_map_string_double(string fname, unordered_map<string,double>& m)
 	string line;
 	if(f.is_open())
 	{
-		size_t pos = 0, c_pos = 0, length = 0;
+		size_t pos = 0, length = 0;
 		cout << "#### " << fname << "####" << endl;
 		int j = 1;
 		while (getline(f,line))
 		{
 			line.erase(remove( line.begin(), line.end(), '\"' ),line.end());
 			pos = 0;
-			c_pos = 0;
 			// read rates
 			length = line.length();
 
@@ -162,7 +159,6 @@ void init_data_structures()
 	read_map_string_int("./ReactNames", ReactionsNames);
 
 	read_constant("./gDW_CDmax", gDW_CDmax);
-	read_constant("./gDW_CDmean", gDW_CDmean);
 	read_constant("./gDW_CDmin", gDW_CDmin);
 
 	read_constant("./gDW_IEC", gDW_IEC);
@@ -296,10 +292,10 @@ double Heam(double *Value,
 	double PercDamage = DamagePlace/DAMAGEmax;
 	double g = 0;
 
-	if(PercDamage < 0 & PercDamage > 1 ){
+	if((PercDamage < 0) & (PercDamage > 1)){
 
 	}
-	else if(PercDamage>0.1 & PercDamage <= 0.7){
+	else if((PercDamage>0.1) & (PercDamage <= 0.7)){
 		g = 1/3;
 	}
 	else if(PercDamage > 0.7){
@@ -328,7 +324,7 @@ double Therapy(double *Value,
 	int CDPlace = Value[NumPlaces.find("CD") -> second];
 	int HemePlace = Value[NumPlaces.find("pheme_e") -> second];
 
-	rate = (Emax*DrugPlace*CDPlace)/(((Mmtz*Na)/(Drug50*((Imax*HemePlace)/(K50 + HemePlace))))+DrugPlace)
+	rate = (Emax*DrugPlace*CDPlace)/(((Mmtz*Na)/(Drug50*((Imax*HemePlace)/(K50 + HemePlace))))+DrugPlace);
 
 	return(rate);
 
@@ -351,12 +347,11 @@ double DeathCD(double *Value,
 	int BiomassCDPlace = Value[NumPlaces.find("BiomassCD") -> second];
 	int CDPlace = Value[NumPlaces.find("CD") -> second];
 
-	if(BiomassCDPlace - gDW_CDmin > 0){
+	if((BiomassCDPlace - gDW_CDmin) > 0){
+		rate = 0;
+	}
 
-	}
-	else (BiomassCDPlace - gDW_CDmin <= 0){
-		rate = h*CDPlace
-	}
+	rate = h*CDPlace;
 
 	return(rate);
 
@@ -378,7 +373,7 @@ double Duplication(double *Value,
 
 	int BiomassCDPlace = Value[NumPlaces.find("BiomassCD") -> second];
 
-	rate = rCDdup*(gDW_CDmax/(BiomassCDPlace- (rCDdup/2)))
+	rate = rCDdup*(1 - exp(BiomassCDPlace - gDW_CDmax));
 
 	return(rate);
 
@@ -400,12 +395,12 @@ double Starvation(double *Value,
 
 	int BiomassCDPlace = Value[NumPlaces.find("BiomassCD") -> second];
 
-	if(BiomassCDPlace - FBABiomassEXoutflux = 0){
-		rate = RCD*BiomassCDPlace
-	}
-	else (BiomassCDPlace - gDW_CDmin <= 0){
+	double fbaEXBiomassOut = 1.507725e-06;
 
+	if(fbaEXBiomassOut >= 0){
+		rate = RCD*BiomassCDPlace;
 	}
+		rate = 0;
 
 	return(rate);
 
