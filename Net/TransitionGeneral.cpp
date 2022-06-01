@@ -43,7 +43,6 @@ static unordered_map <string, int> ReactionsNames;
 static double Flag = -1;
 double rate = 0;
 static double gDW_CDmax = 0;
-static double gDW_IEC = 0;
 static map <string, string> FBAmet;
 static unordered_map <string, double> Vmax;
 static unordered_map <string, double> KM;
@@ -160,8 +159,6 @@ void init_data_structures()
 
 	read_constant("./gDW_CDmax", gDW_CDmax);
 	read_constant("./gDW_CDmin", gDW_CDmin);
-
-	read_constant("./gDW_IEC", gDW_IEC);
 
 	read_constant("./Inflammation_rate", Inflammation);
 	read_constant("./DAMAGEmax_rate", DAMAGEmax);
