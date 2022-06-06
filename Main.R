@@ -11,6 +11,8 @@
 
 #' 2) Let load the Epimod package
 
+setwd("./git/EpiCell_CDifficile")
+
 # library(devtools)
 # install_github("https://github.com/qBioTurin/epimod", ref="master")
 library(epimod)
@@ -32,3 +34,11 @@ model.analysis(solver_fname = "./Net/EpitCellDifficile.solver",
 							 parameters_fname = "Input/ParametersList.csv",
 							 functions_fname = "Rfunction/Functions.R",
 							 debug = T)
+
+source("./Rfunction/ModelAnalysisPlot.R")
+
+ModelAnalysisPlot(TracesPath = "EpitCellDifficile_analysis/EpitCellDifficile-analysis-1.trace",
+                  FluxPath = "EpitCellDifficile_analysis/EpitCellDifficile-analysis-00.trace",
+                  FluxVec = c("EX_biomass.e.", "EX_pheme.e.", "EX_cys_L.e.", "EX_trp_L.e.", 
+                              "EX_val_L.e.", "EX_ile_L.e.", "EX_leu_L.e.", "EX_pro_L.e."))
+
