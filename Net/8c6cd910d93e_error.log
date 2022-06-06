@@ -1,0 +1,173 @@
+
+
+--------------------------------------------------------------------
+                      Generation ODE/SDE model
+--------------------------------------------------------------------
+
+
+#Computing p-semiflows and place bounds: 
+
+Place invariants for net /home/EpitCellDifficile:
+
+   IECs   Damage
+
+Only 2 places out of 18 are covered by some P-invariant.
+
+The following places are not covered by any P-invariant:
+
+ pheme_e BiomassCD pro_L_e leu_L_e ile_L_e val_L_e trp_L_e cys_L_e Drug pro_L_v leu_L_v ile_L_v val_L_v trp_L_v cys_L_v CD
+
+/usr/local/GreatSPN/bin/PN2ODE /home/EpitCellDifficile -M
+
+
+ =========================================================
+|	      	        PN to ODE        	          |
+ =========================================================
+
+ If you find any bug, send an email to beccuti@di.unito.it!
+Transition EX_pheme_e_in has function:  FN:FBA
+
+Transition EX_pro_L_e_in has function:  FN:FBA
+
+Transition EX_biomass_e_out has function:  FN:FBA
+
+Transition Death4Treat has function:  FN:Therapy
+
+Transition EX_val_L_e_in has function:  FN:FBA
+
+Transition EX_ile_L_e_in has function:  FN:FBA
+
+Transition EX_leu_L_e_out has function:  FN:FBA
+
+Transition EX_cys_L_e_in has function:  FN:FBA
+
+Transition EX_trp_L_e_in has function:  FN:FBA
+
+Transition EX_pheme_e_out has function:  FN:FBA
+
+Transition Inflam has function:  FN:Heam
+
+Transition EX_cys_L_e_out has function:  FN:FBA
+
+Transition EX_trp_L_e_out has function:  FN:FBA
+
+Transition EX_val_L_e_out has function:  FN:FBA
+
+Transition EX_ile_L_e_out has function:  FN:FBA
+
+Transition EX_leu_L_e_in has function:  FN:FBA
+
+Transition EX_biomass_e_in has function:  FN:FBA
+
+Transition Starv has function:  FN:Starvation
+
+Transition DeathBac has function:  FN:DeathCD
+
+Transition Dup has function:  FN:Duplication
+
+
+
+------------------------------------------------
+               Start  encoding
+------------------------------------------------
+
+Opening file: /home/EpitCellDifficile.bnd
+Opening file: /home/EpitCellDifficile.pin
+Number of P-invs: 1
+
+	P-invariant: 
+	 1 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 | 0
+	
+	U
+	 1 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 | 0
+	
+	L
+	 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+	
+	P
+	 0
+
+START EXECUTION...
+FN:FBA
+
+FN:FBA
+
+FN:FBA
+
+FN:Therapy
+
+FN:FBA
+
+FN:FBA
+
+FN:FBA
+
+FN:FBA
+
+FN:FBA
+
+FN:FBA
+
+FN:Heam
+
+FN:FBA
+
+FN:FBA
+
+FN:FBA
+
+FN:FBA
+
+FN:FBA
+
+FN:FBA
+
+FN:Starvation
+
+FN:DeathCD
+
+FN:Duplication
+
+	Done.
+
+------------------------------------------------
+                 End encoding
+------------------------------------------------
+
+
+===================== INFO =====================
+ Total Time: 0.001141 sec
+ Total Used Memory: 3912KB
+ Output saved in: EpitCellDifficile.cpp
+================================================
+
+PN2ODE solution
+/home/EpitCellDifficile
+#cd /usr/local/GreatSPN/scripts/../inst_src
+#Copying file form /usr/local/GreatSPN/scripts/../inst_src to /tmp/tmp.Rc22Br1Hx6
+
+#cat /tmp/tmp.Rc22Br1Hx6/tmpB  /home/TransitionGeneral.cpp  /tmp/tmp.Rc22Br1Hx6/tmpE >> /tmp/tmp.Rc22Br1Hx6/tmpA
+FuncT
+#cat /tmp/tmp.Rc22Br1Hx6/tmpA >>  /tmp/tmp.Rc22Br1Hx6/class.cpp
+
+#cd /tmp/tmp.Rc22Br1Hx6
+
+#Compiling ... 
+g++ -D CGLPK -I./  -o  /home/EpitCellDifficile.solver  /home/EpitCellDifficile.cpp  ./class.cpp  ./lsode.cpp ./GLPKsolve.cpp ./general.cpp -O3 -std=c++11 -lm -Wall -lglpk
+./class.cpp: In function 'void SDE::init_data_structures(const SDE::InfTr*, std::map<std::__cxx11::basic_string<char>, int>&)':
+./class.cpp:3977:90: error: 'const struct SDE::InfTr' has no member named 'OutPlaces'; did you mean 'InhPlaces'?
+ 3977 |         cout << "Cardinalità transition:" << Trans[NumTrans.find("IECsDeath") -> second].OutPlaces[2].Card << endl;
+      |                                                                                          ^~~~~~~~~
+      |                                                                                          InhPlaces
+./class.cpp:3978:53: error: 'const struct SDE::InfTr' has no member named 'OutPlaces'; did you mean 'InhPlaces'?
+ 3978 |         Trans[NumTrans.find("IECsDeath") -> second].OutPlaces[2].Card = 100;
+      |                                                     ^~~~~~~~~
+      |                                                     InhPlaces
+./class.cpp:3979:103: error: 'const struct SDE::InfTr' has no member named 'OutPlaces'; did you mean 'InhPlaces'?
+ 3979 |         cout << "Cardinalità transition (modificata):" << Trans[NumTrans.find("IECsDeath") -> second].OutPlaces[2].Card << endl;
+      |                                                                                                       ^~~~~~~~~
+      |                                                                                                       InhPlaces
+make: *** [makefile:31: fluxb] Error 1
+#Error during compilation. 
+
+

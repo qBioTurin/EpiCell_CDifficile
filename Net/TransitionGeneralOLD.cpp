@@ -54,7 +54,6 @@ static double Emax = 0;
 static double Imax = 0;
 static double Mmtz = 0;
 static double Na = 0;
-static double c = 0;
 static double Drug50 = 0;
 static double K50 = 0;
 // Constants for DeathBac transition
@@ -64,8 +63,6 @@ static double h = 0;
 static double rCDdup = 0;
 // Constants for Starv transition
 static double RCD = 0;
-
-fstream Flx("EpitCellDifficile-analysis-00.trace");
 
 /* Read data from file and fill a map<string,int> */
 void read_map_string_int(string fname, unordered_map<string,int>& m)
@@ -156,15 +153,12 @@ void read_constant(string fname, double& Infection_rate)
 string str = "FBAfile";
 LPprob l(str.c_str());
 
-void init_data_structures(const struct InfTr* Trans, map <string,int>& NumTrans)
+void init_data_structures()
 {
   read_map_string_int("./ReactNames", ReactionsNames);
   
   read_constant("./gDW_CDmax", gDW_CDmax);
   read_constant("./gDW_CDmin", gDW_CDmin);
-  
-  read_map_string_double("./VmaxValues", Vmax);
-  read_map_string_double("./KMValues", KM);
   
   read_constant("./Inflammation_rate", Inflammation);
   read_constant("./DAMAGEmax_rate", DAMAGEmax);
@@ -172,10 +166,7 @@ void init_data_structures(const struct InfTr* Trans, map <string,int>& NumTrans)
   read_constant("./Emax", Emax);
   read_constant("./Imax", Imax);
   read_constant("./Mmtz",Mmtz);
-  
   read_constant("./Na", Na);
-  read_constant("./c", c);
-  
   read_constant("./Drug50", Drug50);
   read_constant("./K50", K50);
   
@@ -189,18 +180,6 @@ void init_data_structures(const struct InfTr* Trans, map <string,int>& NumTrans)
   FBAmet["EX_ile_L_e_in"] = "EX_ile_L(e)";
   FBAmet["EX_leu_L_e_in"] = "EX_leu_L(e)";
   FBAmet["EX_pro_L_e_in"] = "EX_pro_L(e)";
-  // file trace init
-  
-  Flx.open ("EpitCellDifficile-analysis-00.trace", std::fstream::in | std::fstream::out | std::fstream::app);
-  Flx << "Time" << ";";
-  if (Flx.is_open())
-  {
-    for (auto it = ReactionsNames.begin(); it != ReactionsNames.end(); ++ it) {
-      Flx << it -> first << ";";
-    }
-    Flx << "\n";
-    Flx.close();
-  }
   
   Flag = 1;
 }
@@ -214,7 +193,7 @@ double FBA(double *Value,
            const double& time)
 {
   
-  if( Flag == -1)   init_data_structures(Trans, NumTrans);
+  if( Flag == -1)   init_data_structures();
   
   // Definition of the function exploited to calculate the rate,
   // in this case for semplicity we define it throught the Mass Action law
@@ -237,27 +216,14 @@ double FBA(double *Value,
         if( Ub <= 0 ) Ub = 0.000001;
       }else{
         double Met = Value[Trans[NumTrans.find(p->first) -> second].InPlaces[0].Id];
-        cout<< "Trans: " <<  p->first << ", Met input: " << Met <<";" << endl;
+        cout<< "Trans: " <<  p->first << ", MEt input: " << Met <<";" << endl;
         Lb = (- (Vmax.find(p->first) -> second) * (Met/Na)) / ((KM.find(p->first) -> second) + (Met/Na));
-        cout<< "Trans: " <<  p->first << ", Met (mmol): " << Met/Na <<";" << endl;
-        cout<< "Trans: " <<  p->first << ", Lb (mmol): " << Lb <<";" << endl;
       }
       l.update_bound(index, TypeBound, Lb, Ub);
     }
     
     l.solve();
     Vars = l.getVariables();
-    
-    Flx.open ("EpitCellDifficile-analysis-00.trace", std::fstream::in | std::fstream::out | std::fstream::app);
-    Flx << time << ";";
-    if (Flx.is_open())
-    {
-      for (auto it = ReactionsNames.begin(); it != ReactionsNames.end(); ++ it) {
-        Flx << Vars[it -> second] << ";";
-      }
-      Flx << "\n";
-      Flx.close();
-    }
     
     FBAtime = time;
   }
@@ -284,13 +250,13 @@ double FBA(double *Value,
   
   // trans_in when is neg, otherwise trans_out
   if( (Out) & (rate > 0) )
-    rate = rate*(Na/c);
+    rate = rate;
   else if( (Out) & (rate < 0) )
     rate = 0 ;
   else if( (In) & (rate > 0) )
     rate = 0 ;
   else if( (In) & (rate < 0) )
-    rate = -rate*(Na/c);
+    rate = -rate ;
   
   cout << NameTrans[T] << " transition with " <<
     FBAmet.find(str) -> second << " flux: " << Vars[indexR] <<
@@ -298,7 +264,7 @@ double FBA(double *Value,
   
   if(rate < 0){
     cout << "WARNING: the rate is negative!!!! see transition: " << NameTrans[T] << endl;
-    rate = -rate*(Na/c);
+    rate = -rate;
   }
   
   return(rate);
@@ -314,7 +280,7 @@ double Heam(double *Value,
             const double& time)
 {
   
-  if( Flag == -1)   init_data_structures(Trans, NumTrans);
+  if( Flag == -1)   init_data_structures();
   
   double rate = 0;
   
@@ -347,7 +313,7 @@ double Therapy(double *Value,
                const double& time)
 {
   
-  if( Flag == -1)   init_data_structures(Trans, NumTrans);
+  if( Flag == -1)   init_data_structures();
   
   double rate = 0;
   
@@ -371,7 +337,7 @@ double DeathCD(double *Value,
                const double& time)
 {
   
-  if( Flag == -1)   init_data_structures(Trans, NumTrans);
+  if( Flag == -1)   init_data_structures();
   
   double rate = 0;
   
@@ -398,7 +364,7 @@ double Duplication(double *Value,
                    const double& time)
 {
   
-  if( Flag == -1)   init_data_structures(Trans, NumTrans);
+  if( Flag == -1)   init_data_structures();
   
   double rate = 0;
   
@@ -420,24 +386,18 @@ double Starvation(double *Value,
                   const double& time)
 {
   
-  if( Flag == -1)   init_data_structures(Trans, NumTrans);
+  if( Flag == -1)   init_data_structures();
   
   double rate = 0;
-  double fbaEXBiomassOut = 0;
   
   int BiomassCDPlace = Value[NumPlaces.find("BiomassCD") -> second];
   
-  if( FBAtime != time) {
-    fbaEXBiomassOut = FBA(Value, NumTrans, NumPlaces, NameTrans, Trans, NumTrans.find("EX_biomass_e_in") -> second, time);
-  } else {
-    fbaEXBiomassOut = Vars[ReactionsNames.find("EX_biomass(e)") -> second];
-  }
+  double fbaEXBiomassOut = 1.507725e-06;
   
-  cout<< "fbaEXBiomassOut (mmol): " << fbaEXBiomassOut <<";" << endl;
-  
-  if(fbaEXBiomassOut == 0){
+  if(fbaEXBiomassOut >= 0){
     rate = RCD*BiomassCDPlace;
   }
+  rate = 0;
   
   return(rate);
   

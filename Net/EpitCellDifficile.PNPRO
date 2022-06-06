@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!-- This project file has been saved by the New GreatSPN Editor, v.100 --><project name="EpitCellDifficile" version="121">
-  <gspn name="PetriNet" view-rates="false">
+  <gspn name="PetriNet" view-rates="false" zoom="50">
     <nodes>
       <place label-y="-2.5" name="IECs" x="41.0" y="22.0"/>
       <place label-x="-3.5" label-y="0.0" name="pheme_e" x="46.0" y="57.0"/>
       <transition delay="FN:FBA" label-x="-7.0" label-y="1.5" name="EX_pheme_e_in" rotation="1.5707963267948966" type="GEN" x="43.55" y="82.0"/>
       <transition delay="FN:FBA" label-x="-6.0" label-y="1.5" name="EX_pro_L_e_in" rotation="1.5707963267948966" type="GEN" x="55.55" y="82.0"/>
-      <transition delay="FN:FBA" label-x="1.0" label-y="1.5" name="EX_biomass_e_out" rotation="1.5707963267948966" type="GEN" x="24.55" y="77.0"/>
+      <transition delay="FN:FBA" label-y="1.5" name="EX_biomass_e_out" rotation="1.5707963267948966" type="GEN" x="24.55" y="77.0"/>
       <place label-x="4.0" label-y="0.0" name="BiomassCD" x="19.0" y="62.0"/>
       <transition delay="1" label-x="-3.5" label-y="-2.0" name="IECsDeath" nservers-x="0.5" rotation="3.141592653589793" type="EXP" x="26.55" y="27.0"/>
       <place label-x="3.5" label-y="0.0" name="pro_L_e" x="58.0" y="57.0"/>
@@ -32,11 +32,11 @@
       <transition label-y="1.5" name="D_pro_L_e" nservers-x="0.5" rotation="1.5707963267948966" type="EXP" x="58.55" y="66.0"/>
       <transition label-x="3.0" name="T_cys_L_e" nservers-x="0.5" rotation="1.5707963267948966" type="EXP" x="117.55" y="14.0"/>
       <text-box bold="true" border-color="#000000" fill-color="#80cfff" height="18.0" horiz-pos="4" name="copy_copy_copy_copy___textBox0" rotation="-0.0" shadow="true" shape="ROUND_RECTANGLE" text-color="#000000" width="90.0" x="40.0" y="49.0">LumenEnv</text-box>
-      <text-box bold="true" border-color="#000000" fill-color="#ffc0d8" height="22.0" horiz-pos="4" name="copy_copy_copy_copy_copy___textBox0" rotation="-0.0" shadow="true" shape="ROUND_RECTANGLE" text-color="#000000" width="103.0" x="27.0" y="15.0">IECs</text-box>
+      <text-box bold="true" border-color="#000000" fill-color="#ffc0d8" height="23.0" horiz-pos="4" name="copy_copy_copy_copy_copy___textBox0" rotation="-0.0" shadow="true" shape="ROUND_RECTANGLE" text-color="#000000" width="103.0" x="27.0" y="15.0">IECs</text-box>
       <text-box bold="true" border-color="#000000" fill-color="#ffd8c0" height="14.5" horiz-pos="4" name="copy_copy_copy_copy_copy_copy___textBox0" rotation="-0.0" shadow="true" shape="ROUND_RECTANGLE" text-color="#000000" width="10.0" x="14.0" y="30.5">Drug</text-box>
       <transition delay="FN:FBA" label-x="-0.5" label-y="1.5" name="EX_pheme_e_out" rotation="1.5707963267948966" type="GEN" x="49.55" y="77.0"/>
       <transition delay="FN:Heam" label-x="2.0" name="Inflam" rotation="1.5707963267948966" type="GEN" x="46.55" y="48.0"/>
-      <place label-x="-4.5" label-y="0.0" name="Damage" x="34.0" y="32.0"/>
+      <place label-x="-3.5" label-y="0.0" name="Damage" x="35.0" y="34.0"/>
       <transition label-x="3.0" name="T_trp_L_e" nservers-x="0.5" rotation="1.5707963267948966" type="EXP" x="104.55" y="14.0"/>
       <transition label-x="3.0" name="T_val_L_e" nservers-x="0.5" rotation="1.5707963267948966" type="EXP" x="91.55" y="14.0"/>
       <transition label-x="3.0" name="T_ile_L_e" nservers-x="0.5" rotation="1.5707963267948966" type="EXP" x="78.55" y="14.0"/>
@@ -53,7 +53,7 @@
       <transition delay="FN:FBA" label-x="0.5" label-y="1.5" name="EX_trp_L_e_out" rotation="1.5707963267948966" type="GEN" x="109.55" y="77.0"/>
       <transition delay="FN:FBA" label-y="1.5" name="EX_val_L_e_out" rotation="1.5707963267948966" type="GEN" x="96.55" y="77.0"/>
       <transition delay="FN:FBA" label-y="1.5" name="EX_ile_L_e_out" rotation="1.5707963267948966" type="GEN" x="84.55" y="77.0"/>
-      <transition delay="FN:FBA" label-x="-5.5" label-y="1.5" name="EX_leu_L_e_in" rotation="1.5707963267948966" type="GEN" x="66.55" y="82.0"/>
+      <transition delay="FN:FBA" label-x="-6.5" label-y="1.5" name="EX_leu_L_e_in" rotation="1.5707963267948966" type="GEN" x="66.55" y="82.0"/>
       <transition delay="FN:FBA" label-y="1.5" name="EX_biomass_e_in" rotation="1.5707963267948966" type="GEN" x="19.55" y="82.0"/>
       <transition delay="FN:Starvation" label-x="2.0" label-y="2.0" name="Starv" type="GEN" x="12.55" y="64.0"/>
       <transition delay="FN:DeathCD" name="DeathBac" rotation="4.71238898038469" type="GEN" x="19.55" y="48.0"/>
@@ -68,20 +68,20 @@
       <arc head="IECsDeath" kind="INPUT" mult-k="0.7747070312500001" tail="IECs">
         <point x="31.5" y="23.0"/>
       </arc>
-      <arc head="val_L_e" kind="OUTPUT" mult-k="0.5852539062500001" tail="IECsDeath">
-        <point x="91.0" y="44.0"/>
+      <arc head="val_L_e" kind="OUTPUT" mult="2147483646" mult-k="0.5852539062500001" mult-x="14.040731617680962" mult-y="3.5498818359465076" tail="IECsDeath">
+        <point x="91.0" y="45.0"/>
       </arc>
-      <arc head="trp_L_e" kind="OUTPUT" mult-k="0.5448242187500001" tail="IECsDeath">
-        <point x="104.5" y="43.5"/>
+      <arc head="trp_L_e" kind="OUTPUT" mult="1" mult-k="0.5448242187500001" mult-x="20.27378424170135" mult-y="4.23747525301836" tail="IECsDeath">
+        <point x="104.5" y="45.0"/>
       </arc>
-      <arc head="cys_L_e" kind="OUTPUT" mult-k="0.5862304687500001" tail="IECsDeath">
-        <point x="116.5" y="42.5"/>
+      <arc head="cys_L_e" kind="OUTPUT" mult="1" mult-k="0.5862304687500001" mult-x="20.73710098457002" mult-y="3.53367463041878" tail="IECsDeath">
+        <point x="117.0" y="45.0"/>
       </arc>
-      <arc head="leu_L_e" kind="OUTPUT" tail="IECsDeath">
-        <point x="66.5" y="44.5"/>
+      <arc head="leu_L_e" kind="OUTPUT" mult="1" mult-x="7.996054963079864" mult-y="3.498323359308941" tail="IECsDeath">
+        <point x="67.0" y="45.0"/>
       </arc>
-      <arc head="ile_L_e" kind="OUTPUT" tail="IECsDeath">
-        <point x="78.5" y="44.5"/>
+      <arc head="ile_L_e" kind="OUTPUT" mult="1" mult-x="11.246847823536072" mult-y="3.498959475730352" tail="IECsDeath">
+        <point x="78.5" y="45.0"/>
       </arc>
       <arc head="val_L_e" kind="OUTPUT" tail="D_val_L_e"/>
       <arc head="trp_L_e" kind="OUTPUT" tail="D_trp_L_e"/>
@@ -195,10 +195,10 @@
         <point x="59.0" y="21.0"/>
       </arc>
       <arc head="Inflam" kind="INPUT" tail="Damage">
-        <point x="46.0" y="42.0"/>
+        <point x="45.5" y="43.0"/>
       </arc>
       <arc head="Damage" kind="OUTPUT" tail="Inflam">
-        <point x="47.0" y="41.5"/>
+        <point x="46.5" y="42.5"/>
       </arc>
       <arc head="BiomassCD" kind="OUTPUT" tail="EX_biomass_e_out">
         <point x="25.0" y="73.5"/>
@@ -251,7 +251,7 @@
         <point x="51.0" y="89.5"/>
       </arc>
       <arc head="CD" kind="OUTPUT" tail="EX_leu_L_e_in">
-        <point x="61.0" y="89.5"/>
+        <point x="60.5" y="89.5"/>
         <point x="10.0" y="89.5"/>
         <point x="10.0" y="61.5"/>
       </arc>
@@ -261,7 +261,7 @@
         <point x="61.0" y="90.0"/>
       </arc>
       <arc head="CD" kind="OUTPUT" tail="EX_ile_L_e_in">
-        <point x="72.5" y="90.0"/>
+        <point x="72.0" y="90.0"/>
         <point x="9.5" y="90.0"/>
         <point x="9.5" y="61.5"/>
       </arc>
@@ -271,7 +271,7 @@
         <point x="72.5" y="90.5"/>
       </arc>
       <arc head="CD" kind="OUTPUT" tail="EX_val_L_e_in">
-        <point x="85.0" y="90.5"/>
+        <point x="84.5" y="90.5"/>
         <point x="9.0" y="90.5"/>
         <point x="9.0" y="61.5"/>
       </arc>
@@ -291,7 +291,7 @@
         <point x="98.0" y="91.5"/>
       </arc>
       <arc head="CD" kind="OUTPUT" tail="EX_cys_L_e_in">
-        <point x="111.5" y="91.5"/>
+        <point x="111.0" y="91.5"/>
         <point x="8.0" y="91.5"/>
         <point x="8.0" y="61.5"/>
       </arc>
@@ -394,6 +394,9 @@
         <point x="8.0" y="61.5"/>
         <point x="8.0" y="74.5"/>
         <point x="116.0" y="74.5"/>
+      </arc>
+      <arc head="pro_L_e" kind="OUTPUT" mult="1" mult-x="5.744948520685085" mult-y="3.497088978021914" tail="IECsDeath">
+        <point x="56.5" y="45.0"/>
       </arc>
     </edges>
   </gspn>
