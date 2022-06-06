@@ -68,20 +68,20 @@
       <arc head="IECsDeath" kind="INPUT" mult-k="0.7747070312500001" tail="IECs">
         <point x="31.5" y="23.0"/>
       </arc>
-      <arc head="val_L_e" kind="OUTPUT" mult="2147483646" mult-k="0.5852539062500001" mult-x="14.040731617680962" mult-y="3.5498818359465076" tail="IECsDeath">
+      <arc head="val_L_e" kind="OUTPUT" mult="3010" mult-k="0.5852539062500001" mult-x="14.040731617680962" mult-y="3.5498818359465076" tail="IECsDeath">
         <point x="91.0" y="45.0"/>
       </arc>
-      <arc head="trp_L_e" kind="OUTPUT" mult="1" mult-k="0.5448242187500001" mult-x="20.27378424170135" mult-y="4.23747525301836" tail="IECsDeath">
+      <arc head="trp_L_e" kind="OUTPUT" mult="652" mult-k="0.5448242187500001" mult-x="20.27378424170135" mult-y="4.23747525301836" tail="IECsDeath">
         <point x="104.5" y="45.0"/>
       </arc>
-      <arc head="cys_L_e" kind="OUTPUT" mult="1" mult-k="0.5862304687500001" mult-x="20.73710098457002" mult-y="3.53367463041878" tail="IECsDeath">
+      <arc head="cys_L_e" kind="OUTPUT" mult="384" mult-k="0.5862304687500001" mult-x="13.23710098457002" mult-y="2.53367463041878" tail="IECsDeath">
         <point x="117.0" y="45.0"/>
       </arc>
-      <arc head="leu_L_e" kind="OUTPUT" mult="1" mult-x="7.996054963079864" mult-y="3.498323359308941" tail="IECsDeath">
+      <arc head="leu_L_e" kind="OUTPUT" mult="4159" mult-x="7.996054963079864" mult-y="3.498323359308941" tail="IECsDeath">
         <point x="67.0" y="45.0"/>
       </arc>
-      <arc head="ile_L_e" kind="OUTPUT" mult="1" mult-x="11.246847823536072" mult-y="3.498959475730352" tail="IECsDeath">
-        <point x="78.5" y="45.0"/>
+      <arc head="ile_L_e" kind="OUTPUT" mult="2181" mult-x="11.246847823536072" mult-y="3.498959475730352" tail="IECsDeath">
+        <point x="78.5" y="45.5"/>
       </arc>
       <arc head="val_L_e" kind="OUTPUT" tail="D_val_L_e"/>
       <arc head="trp_L_e" kind="OUTPUT" tail="D_trp_L_e"/>
@@ -395,7 +395,7 @@
         <point x="8.0" y="74.5"/>
         <point x="116.0" y="74.5"/>
       </arc>
-      <arc head="pro_L_e" kind="OUTPUT" mult="1" mult-x="5.744948520685085" mult-y="3.497088978021914" tail="IECsDeath">
+      <arc head="pro_L_e" kind="OUTPUT" mult="3583" mult-x="5.744948520685085" mult-y="3.497088978021914" tail="IECsDeath">
         <point x="56.5" y="45.0"/>
       </arc>
     </edges>
