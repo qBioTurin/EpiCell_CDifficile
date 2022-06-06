@@ -11,22 +11,23 @@ g; Emax; 2.023e05
 g; Imax; 24
 g; Mmtz; 0.17116
 g; Na; 6.022e20
+g; c; 6.022e8
 g; Drug50; 4e-06
 g; K50; 1.030726e+27
 g; h; 0.5
 g; rCDdup; 0.91
 g; RCD; 0.21e-12
 g; DAMAGEmax_rate; 4.57e05
-c; IECsDeath; 1
+c; IECsDeath; 0.00000001
 c; Treat; EvalTreat; dose = 0.0625
 c; Clear; 0.0625
 c; D_pheme_e; EvalDiet; diet = NULL; ex = "EX_pheme_e"
-c; D_cys_L_e; EvalDiet; diet = "EU_average"; ex = "EX_cys_L_e"
-c; D_trp_L_e; EvalDiet; diet = "EU_average"; ex = "EX_trp_L_e"
-c; D_val_L_e; EvalDiet; diet = "EU_average"; ex = "EX_val_L_e"
-c; D_ile_L_e; EvalDiet; diet = "EU_average"; ex = "EX_ile_L_e"
-c; D_leu_L_e; EvalDiet; diet = "EU_average"; ex = "EX_leu_L_e"
-c; D_pro_L_e; EvalDiet; diet = "EU_average"; ex = "EX_pro_L_e"
+c; D_cys_L_e; EvalDiet; diet = "EU_average"; ex = "EX_cys_L_e"; c = 6.022e8 
+c; D_trp_L_e; EvalDiet; diet = "EU_average"; ex = "EX_trp_L_e"; c = 6.022e8
+c; D_val_L_e; EvalDiet; diet = "EU_average"; ex = "EX_val_L_e"; c = 6.022e8
+c; D_ile_L_e; EvalDiet; diet = "EU_average"; ex = "EX_ile_L_e"; c = 6.022e8
+c; D_leu_L_e; EvalDiet; diet = "EU_average"; ex = "EX_leu_L_e"; c = 6.022e8
+c; D_pro_L_e; EvalDiet; diet = "EU_average"; ex = "EX_pro_L_e"; c = 6.022e8
 c; T_pheme_e; EvalTransport; yield = 0.4
 c; T_cys_L_e; EvalTransport; yield = 0.99
 c; T_trp_L_e; EvalTransport; yield = 0.99
