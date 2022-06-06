@@ -1,6 +1,9 @@
 
 ModelAnalysisPlot=function(TracesPath, FluxPath, FluxVec) {
   
+  grid::grid.newpage()
+  grid::pushViewport(grid::viewport(layout = grid::grid.layout(1, 2)))
+  
   library(dplyr)
   
   trace = read.table(TracesPath, header = T)
@@ -12,7 +15,7 @@ ModelAnalysisPlot=function(TracesPath, FluxPath, FluxVec) {
     ggplot() + ggplot2::geom_line(ggplot2::aes(x=Time, y=Marking, group = Places)) +
     ggplot2::facet_wrap(~Places, scales = "free_y") + ggplot2::scale_fill_brewer("Accent")
   
-  subtrace
+  print(subtrace, vp = grid::viewport(layout.pos.row = 1, layout.pos.col = 1))
   
   flux = read.table(FluxPath, header = T, sep = ";")
   
@@ -25,11 +28,11 @@ ModelAnalysisPlot=function(TracesPath, FluxPath, FluxVec) {
       subflux = flux %>% select(FluxVec, Time) %>%
         tidyr::gather(key = "Reaction", value = "Flux", -Time)
       
-      ggplot(subflux, aes(Time, Reaction, height=Flux)) +
+      print(ggplot(subflux, aes(Time, Reaction, height=Flux)) +
         ggridges::geom_density_ridges(stat = "binline", binwidth=1,
-                                      draw_baseline = F)
+                                      draw_baseline = F),
+        vp = grid::viewport(layout.pos.row = 1, layout.pos.col = 2))
     }
   
-  subtrace
-  
   }
+
