@@ -57,10 +57,10 @@ static double Na = 0;
 static double c = 0;
 static double Drug50 = 0;
 static double K50 = 0;
+static double P = 0;
 // Constants for DeathBac transition
 static double gDW_CDmin = 0;
 static double h = 0;
-static double P = 0;
 // Constants for Dup transition
 static double rCDdup = 0;
 // Constants for Starv transition
@@ -181,7 +181,7 @@ void init_data_structures(const struct InfTr* Trans, map <string,int>& NumTrans)
   read_constant("./K50", K50);
   
   read_constant("./h", h);
-  read_constant("./P", h);
+  read_constant("./P", P);
   
   FBAmet["EX_biomass_e_in"] = "EX_biomass(e)";
   FBAmet["EX_pheme_e_in"] = "EX_pheme(e)";
@@ -235,44 +235,20 @@ double FBA(double *Value,
       // if it is in -> updating the bounds!!
       if(p->first == "EX_biomass_e_in"){
         int Biom = Value[NumPlaces.find("BiomassCD") -> second];
-        Ub = (gDW_CDmax - Biom);
-        if( Ub <= 0 ) Ub = 0.000001;
+        Lb = l.getLwBounds(index);
+        Ub = l.getUpBounds(index);
       }else{
         double Met = Value[Trans[NumTrans.find(p->first) -> second].InPlaces[0].Id];
         if (p->first == "EX_pheme_e_in") {
-          cout<< "Trans: " <<  p->first << ", Met input: " << Met <<";" << endl;
-          Lb = (-(Vmax.find(p->first) -> second) * (Met/Na)) / ((KM.find(p->first) -> second) + (Met/Na));
-          //Lb = (Met/Na)*delta_t
-          if(abs(Lb)>(Met/Na)){
-            if(-(Met/Na)>=l.getLwBounds(index)){
-              Lb=Met/Na;} else{
-                Lb=l.getLwBounds(index);
-                }
-              }
-          //Ub = (+(Vmax.find(p->first) -> second) * (Met/Na)) / ((KM.find(p->first) -> second) + (Met/Na));
-          cout<< "Trans: " <<  p->first << ", Met (mmol): " << Met/Na <<";" << endl;
-          cout<< "Trans: " <<  p->first << ", Lb (mmol): " << Lb <<";" << endl;
-          cout<< "Trans: " <<  p->first << ", Ub (mmol): " << Ub <<";" << endl;
-        } else {
-          cout<< "Trans: " <<  p->first << ", Met input: " << Met <<";" << endl;
-          //Lb = l.getLwBounds(index)*P
-          //Ub = l.getUpBounds(index)*P;
-          Lb = (-(Vmax.find(p->first) -> second) * ((Met*c)/Na)) / ((KM.find(p->first) -> second) + ((Met*c)/Na));
-          //Lb = ((Met*c)/Na)*delta_t
-          if(abs(Lb)>((Met*c)/Na)){
-            if(-((Met*c)/Na)>=l.getLwBounds(index)){
-              Lb=(Met*c)/Na;} else{
-                Lb=l.getLwBounds(index);
-              }
+          Lb = l.getLwBounds(index);
+          Ub = l.getUpBounds(index);
+          } else {
+            Lb = l.getLwBounds(index)*P;
+            Ub = l.getUpBounds(index)*P;
+            }
           }
-          //Ub = (+(Vmax.find(p->first) -> second) * ((Met*c)/Na)) / ((KM.find(p->first) -> second) + ((Met*c)/Na));
-          cout<< "Trans: " <<  p->first << ", Met (mmol): " << Met/Na <<";" << endl;
-          cout<< "Trans: " <<  p->first << ", Lb (mmol): " << Lb <<";" << endl;
-          cout<< "Trans: " <<  p->first << ", Ub (mmol): " << Ub <<";" << endl;
-        }
-      }
       l.update_bound(index, TypeBound, Lb, Ub);
-    }
+      }
     
     l.solve();
     Vars = l.getVariables();
