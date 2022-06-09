@@ -26,13 +26,11 @@ ModelAnalysisPlot=function(TracesPath, FluxPath, FluxVec) {
     } else {
       
       subflux = flux %>% select(FluxVec, Time) %>%
-        tidyr::gather(key = "Reaction", value = "Flux", -Time)
+        tidyr::gather(key = "Reaction", value = "Flux", -Time) %>%
+        ggplot() + ggplot2::geom_line(ggplot2::aes(x=Time, y=Flux, group = Reaction)) +
+        ggplot2::facet_wrap(~Reaction, scales = "free_y") + ggplot2::scale_fill_brewer("Accent")
       
-      print(ggplot(subflux, aes(Time, Reaction, height=Flux)) +
-        ggridges::geom_density_ridges(stat = "binline", binwidth=1,
-                                      draw_baseline = F),
-        vp = grid::viewport(layout.pos.row = 1, layout.pos.col = 2))
+      print(subflux, vp = grid::viewport(layout.pos.row = 1, layout.pos.col = 2))
     }
   
   }
-

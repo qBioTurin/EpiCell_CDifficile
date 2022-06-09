@@ -9,44 +9,46 @@ flux_balance <- function(model, typename, diet) {
   ##
   ## Outputs : An object of class optsol_optimizeProb
   ##
-
-	d = diets[[paste(diet)]]
-
-	model@react_id = gsub("\\(", replacement = "_", model@react_id)
-	model@react_id = gsub("\\)", replacement = "", model@react_id)
-
-	source("./Rfunction/ExtractEx.R")
-
-	reactions = ExtractEx(model)
-	EX = reactions@react_id
-
-	if (diet == "Diet_default") {
-
-		name = d[which(d[, 1] %in% EX), ][, 1]
-		reacts = which(model@react_id %in% name)
-
-		# conserving original bounds
-		lobnd <- model@lowbnd
-		upbnd <- model@uppbnd
-
-		model@lowbnd[reacts] = -d[which(d[, 1] %in% EX), ][, 3]
-
-		} else {
-
-			name = d[which(d$Reaction %in% EX), ][, 1]
-			reacts = which(model@react_id %in% unlist(name))
-
-    	# conserving original bounds
-    	lobnd <- model@lowbnd
-    	upbnd <- model@uppbnd
-
-    	model@lowbnd[reacts] =
-    		unlist(-(d[which(unlist(d[, 1]) %in% EX), ][, 2])*
-    					 	((3.14*291*2.5*1.57*6.5*13*1e-04)/1.13e-04)^-1)
+  
+  if (diet != F) {
+    d = diets[[paste(diet)]]
+    
+    model@react_id = gsub("\\(", replacement = "_", model@react_id)
+    model@react_id = gsub("\\)", replacement = "", model@react_id)
+    
+    source("./Rfunction/ExtractEx.R")
+    
+    reactions = ExtractEx(model)
+    EX = reactions@react_id
+    
+    if (diet == "Diet_default") {
+      
+      name = d[which(d[, 1] %in% EX), ][, 1]
+      reacts = which(model@react_id %in% name)
+      
+      # conserving original bounds
+      lobnd <- model@lowbnd
+      upbnd <- model@uppbnd
+      
+      model@lowbnd[reacts] = -d[which(d[, 1] %in% EX), ][, 3]
+      
+    } else {
+      
+      name = d[which(d$Reaction %in% EX), ][, 1]
+      reacts = which(model@react_id %in% unlist(name))
+      
+      # conserving original bounds
+      lobnd <- model@lowbnd
+      upbnd <- model@uppbnd
+      
+      model@lowbnd[reacts] =
+        unlist(-(d[which(unlist(d[, 1]) %in% EX), ][, 2])*
+                 ((3.14*291*2.5*1.57*6.5*13*1e-04)/1.13e-04)^-1)
     }
-
-	name = d[which(d$Reaction %in% EX), ][, 1]
-	reacts = which(model@react_id %in% unlist(name))
+    
+    name = d[which(d$Reaction %in% EX), ][, 1]
+    reacts = which(model@react_id %in% unlist(name))
+  }
 
   #' Structure of the S4 class "Organism"
   #'
