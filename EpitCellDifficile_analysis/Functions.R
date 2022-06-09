@@ -164,7 +164,7 @@ ComputeBiomassBac = function(diameter, len) {
 	return(mass)
 }
 
-EvalDiet = function(diet, ex) {
+EvalDiet = function(diet, ex, c) {
 
 	Lin = 291 # [cm]
 	Din = 2.5 # [cm]
@@ -200,7 +200,7 @@ EvalDiet = function(diet, ex) {
 												Flux = c(7.511832, 28.921675, 46.887810,
 																 53.815279, 4.554825, 37.784377))
 
-		vD = ((fluxes$Flux[fluxes$Reaction == ex]*Na)/24)*((Ain/Aw)^(-1))
+		vD = ((fluxes$Flux[fluxes$Reaction == ex]*(Na/c))/24)*((Ain/Aw)^(-1))
 	}
 	return(vD)
 }
@@ -230,3 +230,15 @@ EvalTreat = function(dose){
 	return(ther)
 
 }
+
+##################################################
+##### How to compute aa's arcs multiplicity ######
+##################################################
+
+# M = c(0.11513, 0.13117, 0.13117, 0.117151, 0.20423, 0.12116) # [g/mmol]
+# S = c(0.41248, 0.54554, 0.28608, 0.352610, 0.13306, 0.046571) # [unit]
+# c = 6.022e8 # [molecule]
+# Na = 6.022e20 # [molecule]
+# DW_IECs = 1e-9 # [g/cell]
+
+# car = round(((DW_IECs*S)/M)*(Na/c), 0) # ([g/cell]*[unit]/[g/mmol])*([molecule]/[molecule])
