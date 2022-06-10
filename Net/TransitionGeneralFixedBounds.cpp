@@ -7,7 +7,7 @@ using namespace FBGLPK;
 /*
  static double Flag = -1;
  static double Infection_rate;
- 
+
  void read_constant(string fname, double& Infection_rate)
  {
  ifstream f (fname);
@@ -65,8 +65,7 @@ static double h = 0;
 static double rCDdup = 0;
 // Constants for Starv transition
 static double RCD = 0;
-
-fstream Flx("EpitCellDifficile-analysis-00.trace");
+string fluxfile = "";
 
 /* Read data from file and fill a map<string,int> */
 void read_map_string_int(string fname, unordered_map<string,int>& m)
@@ -109,7 +108,7 @@ void read_map_string_double(string fname, unordered_map<string,double>& m)
       pos = 0;
       // read rates
       length = line.length();
-      
+
       pos = line.find(',');
       if( pos == string::npos)
         pos = length;
@@ -160,29 +159,34 @@ LPprob l(str.c_str());
 void init_data_structures(const struct InfTr* Trans, map <string,int>& NumTrans)
 {
   read_map_string_int("./ReactNames", ReactionsNames);
-  
+
   read_constant("./gDW_CDmax", gDW_CDmax);
   read_constant("./gDW_CDmin", gDW_CDmin);
-  
+
   read_map_string_double("./VmaxValues", Vmax);
   read_map_string_double("./KMValues", KM);
-  
+
   read_constant("./Inflammation_rate", Inflammation);
   read_constant("./DAMAGEmax_rate", DAMAGEmax);
-  
+
   read_constant("./Emax", Emax);
   read_constant("./Imax", Imax);
   read_constant("./Mmtz",Mmtz);
-  
+
   read_constant("./Na", Na);
   read_constant("./c", c);
-  
+
   read_constant("./Drug50", Drug50);
   read_constant("./K50", K50);
-  
+
   read_constant("./h", h);
   read_constant("./P", P);
-  
+
+  fluxfile = "EpitCellDifficile-analysis-" + to_string(P) + ".trace";
+  fstream Flx(fluxfile);
+
+  P = P/100;
+
   FBAmet["EX_biomass_e_in"] = "EX_biomass(e)";
   FBAmet["EX_pheme_e_in"] = "EX_pheme(e)";
   FBAmet["EX_cys_L_e_in"] = "EX_cys_L(e)";
@@ -192,8 +196,8 @@ void init_data_structures(const struct InfTr* Trans, map <string,int>& NumTrans)
   FBAmet["EX_leu_L_e_in"] = "EX_leu_L(e)";
   FBAmet["EX_pro_L_e_in"] = "EX_pro_L(e)";
   // file trace init
-  
-  Flx.open ("EpitCellDifficile-analysis-00.trace", std::fstream::in | std::fstream::out | std::fstream::app);
+
+  Flx.open(fluxfile, std::fstream::in | std::fstream::out | std::fstream::app);
   Flx << "Time" << ";";
   if (Flx.is_open())
   {
@@ -203,7 +207,7 @@ void init_data_structures(const struct InfTr* Trans, map <string,int>& NumTrans)
     Flx << "\n";
     Flx.close();
   }
-  
+
   Flag = 1;
 }
 
@@ -215,45 +219,38 @@ double FBA(double *Value,
            const int T,
            const double& time)
 {
-  
+
   if( Flag == -1)   init_data_structures(Trans, NumTrans);
-  
+
   // Definition of the function exploited to calculate the rate,
   // in this case for semplicity we define it throught the Mass Action law
-  
+
   if( FBAtime != time){
-    
+
     for (map<string, string>::iterator p = FBAmet.begin();
          p != FBAmet.end(); ++p ) {
       // Saving the reactions indexes from the map
       int index = ReactionsNames.find(p->second) -> second ;
       string TypeBound = "GLP_DB";
-      
+
       double Ub = l.getUpBounds(index);
       double Lb = l.getLwBounds(index);
-      
+
       // if it is in -> updating the bounds!!
       if(p->first == "EX_biomass_e_in"){
-        int Biom = Value[NumPlaces.find("BiomassCD") -> second];
         Lb = l.getLwBounds(index);
         Ub = l.getUpBounds(index);
       }else{
-        double Met = Value[Trans[NumTrans.find(p->first) -> second].InPlaces[0].Id];
-        if (p->first == "EX_pheme_e_in") {
-          Lb = l.getLwBounds(index);
-          Ub = l.getUpBounds(index);
-          } else {
             Lb = l.getLwBounds(index)*P;
             Ub = l.getUpBounds(index)*P;
-            }
           }
       l.update_bound(index, TypeBound, Lb, Ub);
       }
-    
+
     l.solve();
     Vars = l.getVariables();
-    
-    Flx.open ("EpitCellDifficile-analysis-00.trace", std::fstream::in | std::fstream::out | std::fstream::app);
+
+    Flx.open (fluxfile, std::fstream::in | std::fstream::out | std::fstream::app);
     Flx << time << ";";
     if (Flx.is_open())
     {
@@ -263,14 +260,14 @@ double FBA(double *Value,
       Flx << "\n";
       Flx.close();
     }
-    
+
     FBAtime = time;
   }
-  
+
   int indexR = 0;
   bool Out = 1; // 0 if it is "_in" or in not reversible
   bool In = 0;
-  
+
   string str = NameTrans[T];
   if(str.find("_out") != string::npos){
     str = std::regex_replace(str, std::regex("_out"), "_in");// replace '_out' -> '_in'
@@ -281,12 +278,12 @@ double FBA(double *Value,
       In = 1;
     }
   }
-  
+
   indexR = ReactionsNames.find(	FBAmet.find(str) -> second ) -> second ;
   cout<<"\nSolution:\n\n";
   //l.print();
   rate=Vars[indexR];
-  
+
   if(str.find("_L_e") != string::npos){
     // trans_in when is neg, otherwise trans_out
     if( (Out) & (rate > 0) )
@@ -297,11 +294,11 @@ double FBA(double *Value,
       rate = 0 ;
     else if( (In) & (rate < 0) )
       rate = -rate;
-    
+
     cout << NameTrans[T] << " transition with " <<
       FBAmet.find(str) -> second << " flux: " << Vars[indexR] <<
         "(rate: "<< rate << ")" << endl;
-    
+
   } else {
     // trans_in when is neg, otherwise trans_out
     if( (Out) & (rate > 0) )
@@ -312,18 +309,18 @@ double FBA(double *Value,
       rate = 0 ;
     else if( (In) & (rate < 0) )
       rate = -rate*(Na/c);
-    
+
     cout << NameTrans[T] << " transition with " <<
       FBAmet.find(str) -> second << " flux: " << Vars[indexR] <<
         "(rate: "<< rate << ")" << endl;
-    
+
   }
-    
+
   if(rate < 0){
     cout << "WARNING: the rate is negative!!!! see transition: " << NameTrans[T] << endl;
     rate = -rate;
   }
-  
+
   return(rate);
 }
 
@@ -336,18 +333,18 @@ double Heam(double *Value,
             const int T,
             const double& time)
 {
-  
+
   if( Flag == -1)   init_data_structures(Trans, NumTrans);
-  
+
   double rate = 0;
-  
+
   int DamagePlace = Value[NumPlaces.find("Damage") -> second];
-  
+
   double PercDamage = DamagePlace/DAMAGEmax;
   double g = 0;
-  
+
   if((PercDamage < 0) & (PercDamage > 1)){
-    
+
   }
   else if((PercDamage>0.1) & (PercDamage <= 0.7)){
     g = 1/3;
@@ -355,7 +352,7 @@ double Heam(double *Value,
   else if(PercDamage > 0.7){
     g = 1;
   }
-  
+
   rate = g * Inflammation;
   return(rate);
 }
@@ -369,19 +366,19 @@ double Therapy(double *Value,
                const int T,
                const double& time)
 {
-  
+
   if( Flag == -1)   init_data_structures(Trans, NumTrans);
-  
+
   double rate = 0;
-  
+
   int DrugPlace = Value[NumPlaces.find("Drug") -> second];
   int CDPlace = Value[NumPlaces.find("CD") -> second];
   int HemePlace = Value[NumPlaces.find("pheme_e") -> second];
-  
+
   rate = (Emax*DrugPlace*CDPlace)/(((Mmtz*Na)/(Drug50*((Imax*HemePlace)/(K50 + HemePlace))))+DrugPlace);
-  
+
   return(rate);
-  
+
 }
 
 // DeathBac transition
@@ -393,22 +390,22 @@ double DeathCD(double *Value,
                const int T,
                const double& time)
 {
-  
+
   if( Flag == -1)   init_data_structures(Trans, NumTrans);
-  
+
   double rate = 0;
-  
+
   int BiomassCDPlace = Value[NumPlaces.find("BiomassCD") -> second];
   int CDPlace = Value[NumPlaces.find("CD") -> second];
-  
+
   if((BiomassCDPlace - gDW_CDmin) > 0){
     rate = 0;
   }
-  
+
   rate = h*CDPlace;
-  
+
   return(rate);
-  
+
 }
 
 // Dup transition
@@ -420,17 +417,17 @@ double Duplication(double *Value,
                    const int T,
                    const double& time)
 {
-  
+
   if( Flag == -1)   init_data_structures(Trans, NumTrans);
-  
+
   double rate = 0;
-  
+
   int BiomassCDPlace = Value[NumPlaces.find("BiomassCD") -> second];
-  
+
   rate = rCDdup*(1 - exp(BiomassCDPlace - gDW_CDmax));
-  
+
   return(rate);
-  
+
 }
 
 // Starv transition
@@ -442,26 +439,26 @@ double Starvation(double *Value,
                   const int T,
                   const double& time)
 {
-  
+
   if( Flag == -1)   init_data_structures(Trans, NumTrans);
-  
+
   double rate = 0;
   double fbaEXBiomassOut = 0;
-  
+
   int BiomassCDPlace = Value[NumPlaces.find("BiomassCD") -> second];
-  
+
   if( FBAtime != time) {
     fbaEXBiomassOut = FBA(Value, NumTrans, NumPlaces, NameTrans, Trans, NumTrans.find("EX_biomass_e_in") -> second, time);
   } else {
     fbaEXBiomassOut = Vars[ReactionsNames.find("EX_biomass(e)") -> second];
   }
-  
+
   cout<< "fbaEXBiomassOut (mmol): " << fbaEXBiomassOut <<";" << endl;
-  
+
   if(fbaEXBiomassOut == 0){
     rate = RCD*BiomassCDPlace;
   }
-  
+
   return(rate);
-  
+
 }
