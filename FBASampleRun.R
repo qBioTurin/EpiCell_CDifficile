@@ -213,6 +213,7 @@ p1 + p2 + p3 + p4 | p5 | p6 / p7
 
 ## Fluxes comparison
 
+saveRDS(subflux_total, "./glpkFluxes.rds")
 glpkFluxes <- readRDS("./glpkFluxes.rds")
 glpkFluxes["Time"] = NULL
 glpkFluxes["Scenarion"] = c(rep("a 0.8%", 8), rep("b 1.5%", 8), 
