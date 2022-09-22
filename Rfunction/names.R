@@ -25,7 +25,7 @@ name.generation = function(path,out)
 
 }
 
-name.generation(path = "./Net/EpitCellDifficile.PlaceTransition",out = "Input/")
+name.generation(path = "./Net/EpitCellDifficileHemeSink.PlaceTransition",out = "Input/")
 # reference.generation = function(path="input/Data.csv")
 # {
 #   Data <- read_excel(path, na = "NA")

@@ -11,6 +11,10 @@ flux_balance <- function(model, typename, diet) {
   ##
   
   if (diet != F) {
+    
+    cat("                                            ", "\n")
+    cat("Diet is envisaged. Diet formulation = ", diet, "\n")
+    
     d = diets[[paste(diet)]]
     
     model@react_id = gsub("\\(", replacement = "_", model@react_id)
@@ -48,8 +52,14 @@ flux_balance <- function(model, typename, diet) {
     
     name = d[which(d$Reaction %in% EX), ][, 1]
     reacts = which(model@react_id %in% unlist(name))
+  } 
+  else {
+    cat("DIET is not envisaged. Bounds of EX reactions are kept as model template ...")
+    cat("                                                                            ")
+    cat("Initializing structure of the S4 class 'Organism' ...")
+    cat("                                                                            ") 
   }
-
+  
   #' Structure of the S4 class "Organism"
   #'
   #' Structure of the S4 class \code{Organism}
@@ -101,7 +111,7 @@ flux_balance <- function(model, typename, diet) {
   #' @param keys Vector with strings which are used to find biomass reaction in model
   #' @return Vector with reaction ids for biomass reaction(s)
 
-  findrBiomass <- function(model, keys=c("biom", "cpd11416")){
+  findrBiomass <- function(model, keys = c("biom", "cpd11416")){
 
     ex <- sybil::findExchReact(model)
     ex_pos <- ex@react_pos
@@ -146,8 +156,10 @@ flux_balance <- function(model, typename, diet) {
                        typename=NA, setExInf=TRUE,
                        setAllExInf=FALSE,
                        coupling_constraints=list()) {
-
+    
     pot_biomass <- findrBiomass(model)
+    
+    cat("FBA model biomass-related reactions: ", pot_biomass, "\n")
 
     if(all(model@obj_coef==0)){
       if(length(pot_biomass)==0) stop("No objection function set in model")
@@ -221,7 +233,7 @@ flux_balance <- function(model, typename, diet) {
       lobnd[which(names(lobnd) %in% medc ) ] <- -1000
     }
 
-    if(setExInf ){
+    if(setExInf){
     	# if setExInf is true then set lower bound of all
     	# exchange reactions which have zero values to -INF
       lobnd[ which(names(lobnd) %in% medc & lobnd==0) ] <- -1000
@@ -229,12 +241,13 @@ flux_balance <- function(model, typename, diet) {
 
     lobnd.ex <- lobnd[match(medc, rxname)]
     lobnd.ex.med <- stats::median(lobnd.ex[ which( lobnd.ex < 0 & lobnd.ex > -1000 ) ])
+    cat("lobnd.ex.med", lobnd.ex.med, "\n")
 
     if( !is.na(lobnd.ex.med) ){
       print(paste0("Median lower bound for non-zero and non-Inf exchanges is:",
       						 round(lobnd.ex.med), 6))
       if( lobnd.ex.med > -10 ){
-        warning("Many lower bounds of of the model seems to be set to non -infinity. Please be aware that they will be used as maximal uptake rates even when the available medium is more abundant! (set setAllExInf=TRUE to reset all exchanges to -INF)")
+        warning("Many lower bounds of the model seems to be set to non -infinity. Please be aware that they will be used as maximal uptake rates even when the available medium is more abundant! (set setAllExInf=TRUE to reset all exchanges to -INF)")
         #print( lobnd.ex[ which( lobnd.ex < 0 & lobnd.ex >  lobnd.ex.med ) ] )
       }
     }
@@ -263,40 +276,54 @@ flux_balance <- function(model, typename, diet) {
 
   setGeneric("lbnd", function(object){standardGeneric("lbnd")})
   setMethod("lbnd", "Organism", function(object){return(object@lbnd)})
+  
   setGeneric("ubnd", function(object){standardGeneric("ubnd")})
   setMethod("ubnd", "Organism", function(object){return(object@ubnd)})
+  
   setGeneric("type", function(object){standardGeneric("type")})
   setMethod("type", "Organism", function(object){return(object@type)})
+  
   setGeneric("medium", function(object){standardGeneric("medium")})
   setMethod("medium", "Organism", function(object){return(object@medium)})
+  
   setGeneric("lpobj", function(object){standardGeneric("lpobj")})
   setMethod("lpobj", "Organism", function(object){return(object@lpobj)})
+  
   setGeneric("fbasol", function(object){standardGeneric("fbasol")})
   setMethod("fbasol", "Organism", function(object){return(object@fbasol)})
+  
   setGeneric("kinetics", function(object){standardGeneric("kinetics")})
   setMethod("kinetics", "Organism", function(object){return(object@kinetics)})
+  
   setGeneric("model", function(object){standardGeneric("model")})
   setMethod("model", "Organism", function(object){return(object@model)})
+  
   setGeneric("cellweight_mean", function(object){standardGeneric("cellweight_mean")})
   setMethod("cellweight_mean", "Organism", function(object){return(object@cellweight_mean)})
+  
   setGeneric("cellarea", function(object){standardGeneric("cellarea")})
   setMethod("cellarea", "Organism", function(object){return(object@cellarea)})
+  
   setGeneric("algo", function(object){standardGeneric("algo")})
   setMethod("algo", "Organism", function(object){return(object@algo)})
+  
   setGeneric("coupling_constraints", function(object){standardGeneric("coupling_constraints")})
   setMethod("coupling_constraints", "Organism", function(object){return(object@coupling_constraints)})
-
-  setGeneric("optimizeWithEnvironment", function(model_env, lpob=model_env@lpobj,
-                                                 lb=model_env@lbnd, ub=model_env@ubnd,
-                                                 cutoff=1e-6, j, sec_obj="mtf",
-                                                 with_shadow=FALSE){standardGeneric("optimizeWithEnvironment")})
-
-  setMethod("optimizeWithEnvironment", "Organism", function(model_env, lpob=model_env@lpobj,
-                                                            lb=model_env@lbnd, ub=model_env@ubnd,
-                                                            cutoff=1e-6, j, sec_obj="mtf",
-                                                            with_shadow=FALSE){
-
-    # the lp object has to be updated according to the objective
+  
+  setGeneric("optimizeWithEnvironment", 
+             function(model_env, lpob=model_env@lpobj,
+                      lb=model_env@lbnd, ub=model_env@ubnd,
+                      cutoff=1e-6, j, sec_obj="mtf",
+                      with_shadow=FALSE){standardGeneric("optimizeWithEnvironment")})
+  
+  setMethod("optimizeWithEnvironment", "Organism", 
+            function(model_env, lpob=model_env@lpobj,
+                     lb=model_env@lbnd, ub=model_env@ubnd,
+                     cutoff=1e-6, j, sec_obj="mtf",
+                     with_shadow=FALSE){
+    
+    # the LP sobject has to be updated according to the objective
+    
     eval.parent(substitute(model_env@lpobj <- sybil::sysBiolAlg(model, algorithm = "mtf")))
 
     fbasl <- sybil::optimizeProb(lpob, react=1:length(lb),
@@ -311,12 +338,19 @@ flux_balance <- function(model, typename, diet) {
 
   })
 
-  model_env = Organism(model, algo = "fba", ex = "EX_", ex_comp = "all",
-                       typename = typename)
+  model_env = Organism(model, algo = "fba", ex = "EX_", ex_comp = "all", typename = typename)
 
   mtf_sol = optimizeWithEnvironment(model_env)
   mtf_sol = list(mtf_sol, model@lowbnd, model@uppbnd)
-
+  
+  # v = sybil::getFluxDist(mtf_sol[[1]])
+  
+  cat("solver: ", mtf_sol[[1]]@solver, "\n")
+  cat("number of variables: ", model.mat@react_num, "\n")
+  cat("number of constraints: ", model.mat@met_num, "\n")
+  cat("value of objective function (mtf): ", mtf_sol[[1]]@alg_par[["wtobj"]], "\n")
+  cat("how to obtain flux distribution: {r} v = sybil::getFluxDist(mtf_sol[[1]])", "\n")
+  
   return(mtf_sol)
 
 }
