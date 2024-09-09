@@ -17,12 +17,12 @@ The CDI infection Petri Net model is composed by places (graphically represented
 
 The original model, for example, include some unbalanced pseudo reactions. These pre-defined boundary reactions fulfill a function for modeling by adding to or removing metabolites from the model system but are not based on real biology. In particular, sink reactions are of great use for those compounds produced or consumed by non-metabolic cellular processes. The following changes add a new reaction. We edit the original model adding a previous lacking sink reaction. After complement the following issue, a new activity of such cellular processes was assessed using FBA.
 
-1. the sink reaction for heme \textbf{sink\_pheme(c)} is the boundary reaction for protoheme, an alternative route through non-metabolic processes from $sink\_pheme(c) : [c] : pheme <==>$. It is allowed in the model to go in reverse direction. It carries artificially high fluxes (lower bound = -1000; upper bound = 1000), so flux of the final reaction was constrained.
+1. the sink reaction for heme **sink\_pheme(c)** is the boundary reaction for protoheme, an alternative route through non-metabolic processes from $sink\_pheme(c) : [c] : pheme <==> \emptyset$. It is allowed in the model to go in reverse direction. It carries artificially high fluxes (lower bound = -1000; upper bound = 1000), so flux of the final reaction was constrained.
 
-2. \textbf{sink\_pheme(c)} do not required new cytosolic  metabolite \textbf{pheme\_c} (already originally present)
+2. **sink\_pheme(c)** do not required new cytosolic  metabolite **pheme\_c** (already originally present)
 
-3. As boundary reaction \textbf{sink\_pheme(c)} were associated with a blank gene annotation.
+3. As boundary reaction **sink\_pheme(c)** were associated with a blank gene annotation.
 
 # Model analysis and sensitivity routine
 
-The model's parameterisation is primarily based on values extracted from the literature, except for \textit{Death4Treat}, \textit{Detox}, and \textit{IECsDeath}. These parameters are explored using Partial Rank Correlation Coefficients (PRCC) to observe changes in the overall model dynamics. Then the analysis of the model is performed.
+The model's parameterisation is primarily based on values extracted from the literature, except for *Death4Treat*, *Detox*, and *IECsDeath*. These parameters are explored using Partial Rank Correlation Coefficients (PRCC) to observe changes in the overall model dynamics. Then the analysis of the model is performed.
