@@ -1,7 +1,9 @@
 
-load(file = "/CD196HemeSinkDiet.RData")
+setwd("~/EpiCell_CDifficile/Input/CDmodels/CD196HemeSink")
+load(file = "./CD196HemeSinkDiet.RData")
 
-BIGGdata_CD196HemeSink_react <- read.delim2("/BIGGdata_CD196HemeSink_react.tsv")
+BIGGdata_CD196HemeSink_react <- 
+  read.delim2("~/EpiCell_CDifficile/Input/CDmodels/CD196HemeSink/BIGGdata_CD196HemeSink_react.tsv")
 
 rxnNames <- readxl::read_excel("./rxnNames.xlsx", col_names = FALSE)
 CD196HemeSink_BiGGdata = cbind(rxnNames, BIGGdata_CD196HemeSink_react)
@@ -13,9 +15,9 @@ ReagentsNames = unlist(model.mat@met_id)
 
 S = as.matrix(model.mat@S)
 ReagentsIndex = which(ReagentsNames %in% 
-                        c("isocapr_c", "isocapr_e", 
-                          "isoval_c", "isoval_e",
-                          "leu_L_c", "leu_L_e"))
+                        c("isocapr[c]", "isocapr[e]", 
+                          "isoval[c]", "isoval[e]",
+                          "leu_L[c]", "leu_L[e]"))
 
 ReactionIndex = c()
 
@@ -25,6 +27,11 @@ for(i in 1:length(ReagentsIndex)) {
 }
 
 reactList = ReactionsNames[ReactionIndex]
+
+reactList = gsub("\\(", replacement = "_", reactList)
+reactList = gsub("\\)", replacement = "", reactList)
+
+setwd("~/EpiCell_CDifficile")
 
 Exper = "Model_Sensitivity"
 Condition = "Therapy"
@@ -42,7 +49,7 @@ colo3 <- c("#ffd166", "#ee6c4d", "#293241")
 
 for (j in tag) {
   
-  setwd(paste("/CDiff", j, Condition, Exper, sep = "_"))
+  setwd(paste("~/EpiCell_CDifficile/Results/CDiff", j, Condition, Exper, sep = "_"))
   
   load(file = paste("subflux_" , j, Condition, ".RData", sep = ""))
   subflux = cbind(subflux, Scenario = rep(j, length(subflux$Time)))
@@ -118,3 +125,8 @@ for (j in tag) {
 p = (pflux.Death4Treat.Unified / pflux.Death4Treat.Ablated) |
   (pflux.IECsDeath.Unified / pflux.IECsDeath.Ablated) |
   (pflux.Detox.Unified / pflux.Detox.Ablated)
+
+setwd("~/EpiCell_CDifficile")
+ggsave(p, file = paste("SelectedReact.pdf", sep = ""), width = 30, height = 14)
+system(paste("cp SelectedReact.pdf ", "./Results/images4paper/", sep = ""))
+system(paste("mv SelectedReact.pdf ", "./Results/images4paper/", sep = ""))

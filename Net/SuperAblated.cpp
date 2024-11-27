@@ -9,6 +9,7 @@
 #include <string>
 #include<sstream>
 
+
 static map <string, string> FBAmet;
 static map <string, string> FBAplace;
 static map <string, double> FBAvars;
@@ -31,8 +32,8 @@ static double nBacMax = 0;
 // chemical proportionality factors
 static double Na = 0;
 static double c = 0;
-static double pack = 0;
-// multiplicative constant for sensitivity analysis in FBA
+
+// multiplicative constant for sensitivity analysis in FBA 
 static double P = 0;
 
 // Maximum biomass growth tollerance
@@ -54,8 +55,13 @@ static double rCDdup = 0;
 // Constants for Efflux transition
 static double efflux = 0;
 
+// Constants for Starv transition
+static double RCD = 0;
+
 // error difference variation FBAplaces
 double eps = 1e-06;
+
+double EX_B_starv = 0;
 
 static map <string, double> ValuePrev{{"BiomassCD", -1}, {"pheme_c", -1}, 
                                       {"cys_L_e", -1}, {"trp_L_e", -1},
@@ -148,11 +154,13 @@ void init_data_structures(const struct InfTr* Trans, map <string,int>& NumTrans)
   read_constant("./half_life", half_life);
   read_constant("./rCDdup", rCDdup);
   read_constant("./Efflux", efflux);
+  read_constant("./RCD", RCD);
   read_constant("./Death4Treat", Death4Treat);
   read_constant("./Na", Na);
   read_constant("./c", c);
   read_constant("./P", P);
   read_constant("./tB", tB);
+  read_constant("./EX_B_starv", EX_B_starv);
   
   // maps used:
   FBAmet["EX_biomass_e_in"] = "EX_biomass_e";
@@ -236,13 +244,23 @@ double FBA(double *Value,
     // Calculate the rate for "EX_biomass_e_in" case
     rate = MWbio * rateFBA * Biom * (1 - (Biom / gDW_CDmax));
   } else {
+    double met = Value[NumPlaces[FBAplace[str]]];
     
-    double Met = Value[NumPlaces[FBAplace[str]]];
+    rate = rateFBA * met;
     
-    rate = rateFBA * Met;
+    // rateFBA = solution (mmol/g/h)
+    // ratePT = Transition parameters (Cmolecules/h)
+    // Na = (molecules/mmol)
+    // c = (molecules)
+    // nBac = bacterial cells number (#)
+    // Biom = PT biomassCD place (pg = g*1e-12)
+    
+    // Calculate the rate for "_L_e" case
+    // ratePT = (rateFBA * Na * (1 / c)) * (nBac * Biom * 1e-12) = (C_molecules) 
+    // ((Met * cNa) / (nBac * Biom * 1e-12))
     
     // Calculate the rate for other cases
-    double r = (rate * (str.find("_L_e") != string::npos ? pack : 1e+09)) * (nBac*Biom*1e-12);
+    double r = (rate * (str.find("_L_e") != string::npos ? Na * (1 / met) : 1e+09)) * (nBac * Biom * 1e-12);
     
     // Set the rate based on the conditions
     if ((Out && rateFBA > 0) || (In && rateFBA < 0))
@@ -287,9 +305,9 @@ double Heam(double *Value,
 // DeathBac transition
 double DeathCD(double *Value,
                vector<class FBGLPK::LPprob>& vec_fluxb,
-               map <string,int>& NumTrans,
-               map <string,int>& NumPlaces,
-               const vector<string> & NameTrans,
+               map<string, int>& NumTrans,
+               map<string, int>& NumPlaces,
+               const vector<string>& NameTrans,
                const struct InfTr* Trans,
                const int T,
                const double& time) {
@@ -301,7 +319,7 @@ double DeathCD(double *Value,
   double Biom = Value[NumPlaces.find("BiomassCD") -> second];
   double nBac = Value[NumPlaces.find("CD") -> second];
   
-  double k = 100;
+  double k = 5;
   
   rate = half_life*nBac*(1/(2 + exp(k*(Biom - gDW_CDmean))));
   
@@ -316,9 +334,9 @@ double DeathCD(double *Value,
 // Dup transition
 double Duplication(double *Value,
                    vector<class FBGLPK::LPprob>& vec_fluxb,
-                   map <string,int>& NumTrans,
-                   map <string,int>& NumPlaces,
-                   const vector<string> & NameTrans,
+                   map<string, int>& NumTrans,
+                   map<string, int>& NumPlaces,
+                   const vector<string>& NameTrans,
                    const struct InfTr* Trans,
                    const int T,
                    const double& time) {
@@ -330,13 +348,20 @@ double Duplication(double *Value,
   double Biom = Value[NumPlaces.find("BiomassCD") -> second];
   double nBac = Value[NumPlaces.find("CD") -> second];
   
+  if(FlagDebug == 1) {
+    cout<< "Biom (pg): " << Biom << endl;
+    cout<< "nBac (cell): " << nBac << endl;
+  }
+  
+  // if((Biom - gDW_CDmin) > tB){
+  //   rate = Biom*nBac*rCDdup*(1 - (nBac/nBacMax));
+  // }
   rate = ((Biom - gDW_CDmin)/(gDW_CDmax - gDW_CDmin)) *nBac* rCDdup* (1 - (nBac/nBacMax));
   
   
   if(FlagDebug == 1) {
-    cout << "Biom (pg): " << Biom << endl;
-    cout << "nBac (cell): " << nBac << endl;
-    cout << "Dup rate: " << rate << endl;
+    cout << "Biom (pg) - gDW_CDmin (pg): " << Biom - gDW_CDmin << endl;
+    cout << "Dup rate (cell): " << rate << endl;
   }
   
   return(rate);
@@ -345,12 +370,14 @@ double Duplication(double *Value,
 // Starv transition
 double Starvation(double *Value,
                   vector<class FBGLPK::LPprob>& vec_fluxb,
-                  map <string,int>& NumTrans,
-                  map <string,int>& NumPlaces,
-                  const vector<string> & NameTrans,
+                  map<string, int>& NumTrans,
+                  map<string, int>& NumPlaces,
+                  const vector<string>& NameTrans,
                   const struct InfTr* Trans,
                   const int T,
-                  const double & time) {
+                  const double& time) {
+  
+  double rate = 0;
   
   if(Flag == -1) {
     init_data_structures(Trans, NumTrans);
@@ -358,30 +385,11 @@ double Starvation(double *Value,
   
   double Biom = Value[NumPlaces.find("BiomassCD") -> second];
   
-  double EX_B_starv = 0.14; // (mmol/gDW*h)
-  double max_rate = 0.2; // (mmol/gDW*h)
-  
-  double starv, rate;
-  
-  if (Biom <= gDW_CDmean) {
-    starv = EX_B_starv;
-  } else {
-    starv = EX_B_starv * exp((Biom - gDW_CDmean)/(gDW_CDmax - gDW_CDmean));
-  }
-  
-  if (Biom <= gDW_CDmean) {
-    rate = EX_B_starv; // (pg/h)
-  } else {
-    rate = std::min(starv, max_rate); // (pg/h)
-  }
-  
-  // Linear decrease to 0 for Biom values less than gDW_CDmin
-  if (Biom < gDW_CDmin) {
-    rate = rate * (Biom/gDW_CDmin);
-  }
+  rate = (EX_B_starv)*(Biom)*MWbio;
   
   if(FlagDebug == 1) {
-    cout << "starv rate: " << rate << ";" << endl;
+    cout << "EX_B_starv (mmol/gDW*h): " << EX_B_starv << ";" << endl;
+    cout << "starv rate (pg): " << rate << ";" << endl;
   }
   
   return(rate);
@@ -391,20 +399,39 @@ double Starvation(double *Value,
 // Death4Treat
 double DfourT(double *Value,
               vector<class FBGLPK::LPprob>& vec_fluxb,
-              map <string,int>& NumTrans,
-              map <string,int>& NumPlaces,
-              const vector<string> & NameTrans,
+              map<string, int>& NumTrans,
+              map<string, int>& NumPlaces,
+              const vector<string>& NameTrans,
               const struct InfTr* Trans,
               const int T,
-              const double & time) {
+              const double& time) {
   
   double rate = 0;
   
   double nBac = Value[NumPlaces.find("CD") -> second];
   double DrugPlace = Value[NumPlaces.find("Drug") -> second];
   
-  double DrugPlaceMIC = 5842.487;
+  //   MM = 171.16*1e-12 # (g/pmol)
+  //
+  // // ref (1) (doi:_?)
+  //   MIC.conc = 1e-06 # (g/mL)
+  //   MIC.conc = (MIC.conc/MM)*1e-09 # (mmol)
+  //   MIC.conc = MIC.conc*1e+09 # (pmol)
+  //   MIC.conc = MIC.conc*602214150000 # (molecule)
+  //
+  // // dose = 0.5 # (g/day) - prescribed dose -
+  //   dose = 0.05 # (g/day) - MIC dose -
+  // // dose = 0.01 # (g/day) - SubMIC dose -
   
+  double DrugPlaceMIC = 5e+03;
+  
+  // testing.function = function (DrugPlace, nBac, Death4Treat, DrugPlaceMIC) {
+  //       DrugPlace*nBac*Death4Treat*(exp((DrugPlace/DrugPlaceMIC)))
+  // }
+  //
+  // plot(testing.function(c(0, 1e+3, 1e+5, 3e+15, 6e+15, 1e+20, 1e+50), 1e+09, 1e-12, 3e+15))
+  
+  // rate = DrugPlace*nBac*Death4Treat*(exp(((DrugPlace/DrugPlaceMIC) - 1)));
   rate = DrugPlace*nBac*Death4Treat*(exp((DrugPlace/DrugPlaceMIC)));
   
   if(FlagDebug == 1) {
@@ -421,24 +448,18 @@ double DfourT(double *Value,
 // Efflux transition
 double Efflux(double *Value,
               vector<class FBGLPK::LPprob>& vec_fluxb,
-              map <string,int>& NumTrans,
-              map <string,int>& NumPlaces,
-              const vector<string> & NameTrans,
+              map<string, int>& NumTrans,
+              map<string, int>& NumPlaces,
+              const vector<string>& NameTrans,
               const struct InfTr* Trans,
               const int T,
               const double& time) {
-  
+
   double nBac = Value[NumPlaces.find("CD") -> second];
   double DrugPlace = Value[NumPlaces.find("Drug") -> second];
   
   double rate = DrugPlace*nBac*efflux;
-  
-  if(FlagDebug == 1) {
-    cout << "nBac = " << nBac << " (cell)" << endl;
-    cout << "DrugPlace = " << DrugPlace << " (pmol)" << endl;
-    cout << "efflux = " << efflux << " (1/pmol*h*cell)" << endl;
-    cout << "Drug Efflux = " << rate << "(pmol)" << endl;
-  }
+
   
   return(rate);
   

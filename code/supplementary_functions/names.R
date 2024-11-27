@@ -1,5 +1,4 @@
 library(readr)
-
 name.generation = function(path,out)
 {
   Names <- read_table2(path)

@@ -17,14 +17,16 @@
 library(dplyr)
 library(ggplot2)
 
+setwd("~/Documents/ClostridiumDiff_FBAandPN/EpiCell_CDifficile")
+
 conditions = c("NoDrug", "Therapy")
 times = seq(0, 48, 2)
 
 tollFBAsol = 1e-10
 tolldiff = 1e-03
 
-path_model = "/CD196HemeSink.RData"
-path_diet = "diets.RData"
+path_model = "./Input/CDmodels/CD196HemeSink/CD196HemeSink.RData"
+path_diet = "./Input/Diets/diets.RData"
 
 gDW_CDmax = (1/3)*((pi*(0.7)^2)/4)*(((4*0.7)/6) + 9)*1.3; Na = 6.022e20; c = 6.022e8
 
@@ -57,7 +59,7 @@ for (t in times) {
     react_id_ex = which(model.mat@react_id %in% unlist(ex))
     lbNOTdiet = -10
     
-    TracesPath = paste(".rResults/CDiffFBA", co, "_analysis", 
+    TracesPath = paste("./Results/CDiffFBA", co, "_analysis", 
                        "/EpitCellDifficileHemeSink-analysis-1.trace", sep = "")
     
     trace = read.table(TracesPath, header = F)
@@ -98,9 +100,9 @@ for (t in times) {
       rep(Ub, length(model.mat@uppbnd[react_id_ex[which(model.mat@uppbnd[react_id_ex] != 0)]]))
     
     model.mat@uppbnd[which(model.mat@react_id %in% 
-                             c("EX_pro_L_e", "EX_leu_L_e",
-                               "EX_ile_L_e", "EX_val_L_e", 
-                               "EX_trp_L_e", "EX_cys_L_e"))] = rep(aaUb, 6)
+                             c("EX_pro_L(e)", "EX_leu_L(e)",
+                               "EX_ile_L(e)", "EX_val_L(e)", 
+                               "EX_trp_L(e)", "EX_cys_L(e)"))] = rep(aaUb, 6)
     
     Met = subtrace$Marking[which(subtrace$Places %in% 
                                    c("pro_L_e", "leu_L_e", "ile_L_e", 
@@ -108,16 +110,16 @@ for (t in times) {
                                    subtrace$Time == t)]
     
     aaLb = model.mat@lowbnd[which(model.mat@react_id %in% 
-                                    c("EX_pro_L_e", "EX_leu_L_e",
-                                      "EX_ile_L_e", "EX_val_L_e", 
-                                      "EX_trp_L_e", "EX_cys_L_e"))]
+                                    c("EX_pro_L(e)", "EX_leu_L(e)",
+                                      "EX_ile_L(e)", "EX_val_L(e)", 
+                                      "EX_trp_L(e)", "EX_cys_L(e)"))]
     
     aaLb = -((Met*c)/Na)/(nBac*Biom*1e-12)
     
     model.mat@lowbnd[which(model.mat@react_id %in% 
-                             c("EX_pro_L_e", "EX_leu_L_e",
-                               "EX_ile_L_e", "EX_val_L_e", 
-                               "EX_trp_L_e", "EX_cys_L_e"))] = aaLb
+                             c("EX_pro_L(e)", "EX_leu_L(e)",
+                               "EX_ile_L(e)", "EX_val_L(e)", 
+                               "EX_trp_L(e)", "EX_cys_L(e)"))] = aaLb
     
     heme = subtrace$Marking[which(subtrace$Places == "pheme_c" & 
                                     subtrace$Time == t)]
@@ -126,11 +128,11 @@ for (t in times) {
     
     Ubheme = 1e-04;
     
-    model.mat@uppbnd[which(model.mat@react_id == "sink_pheme_c")] = Ubheme
-    model.mat@lowbnd[which(model.mat@react_id == "sink_pheme_c")] = Lbheme
+    model.mat@uppbnd[which(model.mat@react_id == "sink_pheme(c)")] = Ubheme
+    model.mat@lowbnd[which(model.mat@react_id == "sink_pheme(c)")] = Lbheme
     
-    model.mat@uppbnd[which(model.mat@react_id == "EX_biomass_e")] = uppbndBiomass
-    model.mat@lowbnd[which(model.mat@react_id == "EX_biomass_e")] = lowbndBiomass
+    model.mat@uppbnd[which(model.mat@react_id == "EX_biomass(e)")] = uppbndBiomass
+    model.mat@lowbnd[which(model.mat@react_id == "EX_biomass(e)")] = lowbndBiomass
     
     assign(paste("model", co, sep = ""), model.mat)
     Irr = sybil::mod2irrev(model.mat)
@@ -182,9 +184,9 @@ for (t in times) {
   #                    flux must have a _r tag at the end of the reaction id. 
   # It is further assumed, that there is an exact 1:1 match between _f and _b reactions.
   
-  ReactVec = c("EX_biomass_e_f", "sink_pheme_c_b", 
-               "EX_pro_L_e_b", "EX_leu_L_e_b", "EX_ile_L_e_b", 
-               "EX_val_L_e_b", "EX_trp_L_e_b", "EX_cys_L_e_b")
+  ReactVec = c("EX_biomass(e)_f", "sink_pheme(c)_b", 
+               "EX_pro_L(e)_b", "EX_leu_L(e)_b", "EX_ile_L(e)_b", 
+               "EX_val_L(e)_b", "EX_trp_L(e)_b", "EX_cys_L(e)_b")
   
   pn1 = dplyr::filter(df, React_ID %in% ReactVec)
   pn1$PNmodel = rep("Y", length(pn1$PNmodel))

@@ -1,22 +1,21 @@
-
+library(epimodFBAfunctions)
 library(readr)
 library(dplyr)
 
-wd  = "./Documents/ClostridiumDiff_FBAandPN/EpiCell_CDifficile/"
-setwd(wd)
+### Data files
+fba_mat_file <- system.file("data/MATmodels", "Ec_core.mat", package = "epimodFBAfunctions")
+diet_file <- system.file("data/diets/vmh", "EU_average.tsv", package = "epimodFBAfunctions")
 
-source("./Rfunction/epimod_FBAfunctions-main/R/class_generation.R")
-source("./Rfunction/epimod_FBAfunctions-main/R/FBAgreatmodeClass.R")
-source("./Rfunction/epimod_FBAfunctions-main/R/readMat.R")
+### Model
+model = FBA4Greatmod.generation(fba_mat = fba_mat_file)
 
-model = FBA4Greatmod.generation(fba_mat = "./Input/CDmodels/CD196HemeSink/CD196HemeSink.mat")
-
-diet = read_delim("./Input/Diets/vmh/EU_average.tsv", delim = "\t", escape_double = FALSE, trim_ws = TRUE)
+### Diet integration
+diet = read_delim(diet_file, delim = "\t", escape_double = FALSE, trim_ws = TRUE)
 
 diet$Reaction = gsub("\\[", replacement = "\\(", diet$Reaction)
 diet$Reaction = gsub("\\]", replacement = "\\)", diet$Reaction)
 
-diet = diet %>% 
+diet = diet %>%
   rename(lwbnd = `Flux Value`) %>%
   mutate(lwbnd = -(lwbnd)/24, uppbwnd = 10)
 
@@ -25,5 +24,5 @@ model = setDiet.name(model,diet_name = "EU_average")
 
 for(r in model@react_id) model = setConstraints(model, reaction.name = r, newConstraints = c(-0.1, 10))
 
-save(model, "./Input/CDmodels/CD196HemeSink/CD196HemeSink.RData")
-writeFBAfile(model, "./Input/CompiledModels/FBAModelEU_average")
+saveRDS(model, "./Ec_core.RDs")
+writeFBAfile(model, "./Ec_core")

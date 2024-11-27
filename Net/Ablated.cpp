@@ -37,10 +37,11 @@ static double nBacMax = 0;
 // chemical proportionality factors
 static double Na = 0;
 static double c = 0;
-static double pack = 0;
+static double cNa = 0;
 
-// constant for sensitivity analysis in FBA
-static double P = 0;
+// multiplicative constant for sensitivity analysis in FBA
+// static double P = 0;
+static vector<double> P;
 
 // exchange reactions index
 static vector<double> reactIndex;
@@ -64,8 +65,13 @@ static double rCDdup = 0;
 // Constants for Efflux transition
 static double efflux = 0;
 
+// Constants for Starv transition
+static double RCD = 0;
+
 // error difference variation FBAplaces
 double eps = 1e-06;
+
+double EX_B_starv = 0;
 
 static map <string, double> ValuePrev{{"BiomassCD", -1}, {"pheme_c", -1},
                                       {"cys_L_e", -1}, {"trp_L_e", -1},
@@ -176,14 +182,17 @@ void init_data_structures(const struct InfTr* Trans, map <string,int>& NumTrans)
   read_constant("./half_life", half_life);
   read_constant("./rCDdup", rCDdup);
   read_constant("./Efflux", efflux);
+  read_constant("./RCD", RCD);
   read_constant("./Death4Treat", Death4Treat);
   read_constant("./Na", Na);
   read_constant("./c", c);
-  read_constant("./P", P);
+  // read_constant("./P", P);
+  read_list_from_file("./P", P);
   read_list_from_file("/home/docker/data/input/csv/react_index.txt", reactIndex);
   read_constant("./tB", tB);
+  read_constant("./EX_B_starv", EX_B_starv);
   
-  pack = 1*(Na*(1/c));
+  cNa = c/Na;
   
   FBAmet["EX_biomass_e_in"] = "EX_biomass_e";
   FBAmet["sink_pheme_c_in"] = "sink_pheme_c";
@@ -289,89 +298,104 @@ double FBA(double *Value,
       
       if(p -> first == "EX_biomass_e_in") {
         
-        double required = 0.14;
-        double max = 0.2;
-        double stiff = 150;
+        // DOI: - 10.1038/s41598-019-55041-w
+        // a growth rate of 0.20 (1/h) (stardard for C. diff)
+        // requires biomass production = 0.14 (mmol/gDW*h)
         
-        if (nBac < 1) {
-          
-          Ub = Biom*nBac;
-          
+        // to make further comparison
+        // https://doi.org/10.1371/journal.pcbi.1008137
+        // a growth rate of 0.20 (1/h) (stardard for C. diff)
+        // requires glucose uptake = 30 (mmol/gDW*h)
+        
+        // also, https://www.nature.com/articles/s41598-019-55041-w
+        
+        if ((gDW_CDmax - Biom) > tB) {
+          Ub = (gDW_CDmax - Biom);
         } else {
-          
-          if ((gDW_CDmax - Biom) > tB) {
-            Ub = (gDW_CDmax - Biom);
-          } else {
-            Ub = tB;
-          }
-          
-          Ub = Ub > max ? max : Ub;
-          
-          if (Biom < gDW_CDmin) {
-            Ub = 0.0;
-          } else if (Biom == gDW_CDmin) {
-            Ub = max;
-          }
-          
-          Ub = Ub / (1 + exp(-stiff * (Biom - gDW_CDmin)));
-          Ub = Ub * (1 - 1 / (1 + exp(-stiff * (Biom - required))));
+          Ub = tB;
         }
         
       }
-      
       else if (p -> first == "sink_pheme_c_in") {
         
         double Met = trunc(Value[NumPlaces[FBAplace[p -> first]]], decimalTrunc );
-        double E = 1e-24; // (pg)
         
-        if (nBac < 1) {
-          Lb = - (Met*1e-09)/((Biom*1e-12) + E);
+        // in the model heme is measured as (pmol)
+        // in FBA bounds are in (mmol)
+        // (pmol) in (mmol) = 1e-09
+        
+        if(nBac < 1){
+          Lb = -(Met*1e-09)/(Biom*1e-12);
         } else {
-          Lb = - (Met*1e-09)/((nBac*(Biom*1e-12)) + E);
+          Lb = (-(Met*1e-09)/(nBac*Biom*1e-12));
         }
         
-        if (Biom < gDW_CDmin) {
-          Lb = Lb * (Biom/gDW_CDmin);
-        }
+        Ub = 10;
         
-        if (Lb < P) {
-          Lb = P;
-        }
       }
-      
       else {
         
         double Met = trunc(Value[NumPlaces[FBAplace[p->first]]], decimalTrunc );
-        double E = 1e-24; // (pg)
         
-        if (nBac < 1) {
-          Lb = - (Met/pack)/((Biom*1e-12) + E);
+        // in the model AAs are measured as (C_molecules)
+        // in FBA bounds are in (mmol)
+        // quick conversion: 1 mmol = 6.02214154+20 molecules
+        // 6.02214154+20 molecules = Na
+        
+        if(nBac < 1){
+          Lb = -((Met*cNa)/(Biom*1e-12));
         } else {
-          Lb = - (Met/pack)/((nBac*(Biom*1e-12)) + E);
-        }
-        
-        if (Biom < gDW_CDmin) {
-          Lb = Lb * (Biom/gDW_CDmin);
-        }
-        
-        if (Lb < P) {
-          Lb = P;
+          Lb = -((Met*cNa)/(nBac*Biom*1e-12));
         }
         
         Ub = 0.0;
+        
+        // cout << "Trans: " << p -> first << ", Met = " << Met << " (Cmolecule):" << endl;
+        // cout << "Trans: " << p -> first << ", Lb = " << Lb << " (mmol)" << endl;
+        // cout << "Trans: " << p -> first << ", Ub = " << Ub << " (mmol)" << endl;
+        
       }
       
       double Lbtr = trunc(Lb, decimalTrunc);
       double Ubtr = trunc(Ub, decimalTrunc);
       
+      // cout << "Transition:" << p -> first << endl;
+      // cout << "bounds: [" << Lb <<" , " << Ub << "]" << endl;
+      // cout << "Truncated bounds: [" << Lbtr <<" , " << Ubtr << "]" << endl;
+      
+      cout << "Reaction pos: " << index << endl;
+      
       vec_fluxb[0].update_bound(index, TypeBound, Lbtr, Ubtr);
       
-      if (FlagDebug == 1) {
-        cout << "Transition:" << p -> first << endl;
-        cout << "bounds: [" << Lbtr << " , " << Ubtr << "]" << endl;
-      }
-      
     }
+    
+    // sansitivitivy on all the other obundary reaction's bounds  
+    
+    // ifstream file("/home/docker/data/Input/csv/React_index.txt");
+    // string str;
+    
+    // while (getline(file, str)) {
+    for (int i = 0; i < (int)P.size(); i++) {
+      
+      // int index = stoi(str);
+      
+      double Ub = vec_fluxb[0].getUpBounds(reactIndex[i])*P[i];
+      double Lb = vec_fluxb[0].getLwBounds(reactIndex[i])*P[i];
+      
+      double Lbtr = trunc(Lb, decimalTrunc);
+      double Ubtr = trunc(Ub, decimalTrunc);
+      
+      vec_fluxb[0].update_bound(reactIndex[i], TypeBound, Lbtr, Ubtr);
+      
+      cout << "Reaction index: " << reactIndex[i] << endl;
+      cout << "Parameter: " << P[i] << endl;
+      
+      cout << "New Lower Bound (Lb*P): " << Lbtr << endl;
+      cout << "New Upper Bound (Ub*P): " << Ubtr << endl;
+      
+      }
+    
+    // file.close();
     
     vec_fluxb[0].solve();
     
@@ -422,10 +446,10 @@ double FBA(double *Value,
   
   if (str == "EX_biomass_e_in") {
     
-    r = Biom*MWbio*rate*(1 - (Biom/gDW_CDmax));
+    r = MWbio*rate*Biom*(1 - (Biom/gDW_CDmax));
     
   } else if(str.find("_L_e") != string::npos) {
-    r = (rate*pack)*(nBac*Biom*1e-12);
+    r = (rate*Na*(1/c))*(nBac*Biom*1e-12);
     
   } else {
     r = ((rate*1e+09)*(nBac*Biom*1e-12));
@@ -445,34 +469,39 @@ double FBA(double *Value,
   
 }
 
-
 // Inflam transition
 double Heam(double *Value,
             vector<class FBGLPK::LPprob>& vec_fluxb,
-            map<string, int>& NumTrans,
-            map<string, int>& NumPlaces,
-            const vector<string>& NameTrans,
+            map <string,int>& NumTrans,
+            map <string,int>& NumPlaces,
+            const vector<string> & NameTrans,
             const struct InfTr* Trans,
             const int T,
             const double& time) {
   
-  // Check if the data structures need initialization
-  if (Flag == -1)
-    init_data_structures(Trans, NumTrans);
+  if(Flag == -1) init_data_structures(Trans, NumTrans);
   
-  // Retrieve the value of the Damage place and calculate the percentage of damage
-  double DamagePlace = Value[NumPlaces["Damage"]];
-  double PercDamage = DamagePlace / DAMAGEmax;
+  double rate = 0;
+  // double g = 0;
   
-  // Calculate the rate based on the percentage of damage
-  double rate = PercDamage * Inflammation;
+  double DamagePlace = Value[NumPlaces.find("Damage") -> second];
+  double PercDamage = DamagePlace/DAMAGEmax;
   
-  // Print the rate if FlagDebug is set to 1
-  if (FlagDebug == 1) {
+  // if(PercDamage <= 0.1){
+  //   g = 0;
+  // } else if((PercDamage > 0.1) && (PercDamage <= 0.7)){
+  //   g = 1/3;
+  // } else if(PercDamage > 0.7){
+  //   g = 1;
+  // }
+  
+  rate = PercDamage*Inflammation;
+  
+  if(FlagDebug == 1) {
     cout << "Inflammation (pmol): " << rate << endl;
   }
   
-  return rate;
+  return(rate);
 }
 
 // DeathBac transition
@@ -492,7 +521,7 @@ double DeathCD(double *Value,
   double Biom = Value[NumPlaces.find("BiomassCD") -> second];
   double nBac = Value[NumPlaces.find("CD") -> second];
   
-  double k = 100;
+  double k = 5;
   
   rate = half_life*nBac*(1/(2 + exp(k*(Biom - gDW_CDmean))));
   
@@ -516,18 +545,25 @@ double Duplication(double *Value,
   
   if(Flag == -1) init_data_structures(Trans, NumTrans);
   
+  double rate = 0.0;
+  
   double Biom = Value[NumPlaces.find("BiomassCD") -> second];
   double nBac = Value[NumPlaces.find("CD") -> second];
   
-  double d = (Biom - gDW_CDmin) / (gDW_CDmax - gDW_CDmin);
-  double cap = 1 - (nBac / nBacMax);
-  double exp_factor = exp(d * cap);
-  double rate = d * nBac * rCDdup * cap * exp_factor;
+  if(FlagDebug == 1) {
+    cout<< "Biom (pg): " << Biom << endl;
+    cout<< "nBac (cell): " << nBac << endl;
+  }
+  
+  // if((Biom - gDW_CDmin) > tB){
+  //   rate = Biom*nBac*rCDdup*(1 - (nBac/nBacMax));
+  // }
+  rate = ((Biom - gDW_CDmin)/(gDW_CDmax - gDW_CDmin)) *nBac* rCDdup* (1 - (nBac/nBacMax));
+  
   
   if(FlagDebug == 1) {
-    cout << "Biom (pg): " << Biom << endl;
-    cout << "nBac (cell): " << nBac << endl;
-    cout << "Duplication rate: " << rate << endl;
+    cout << "Biom (pg) - gDW_CDmin (pg): " << Biom - gDW_CDmin << endl;
+    cout << "Dup rate (cell): " << rate << endl;
   }
   
   return(rate);
@@ -549,17 +585,11 @@ double Starvation(double *Value,
   
   double Biom = Value[NumPlaces.find("BiomassCD") -> second];
   
-  double EX_B_starv = 0.0080178; // (pg/h)
-  double max_rate = 0.011454; // (pg/h)
-  
-  double rate;
-  
-  double biom_gDW_ratio = Biom / gDW_CDmax;
-  rate = max_rate * pow(biom_gDW_ratio, 3) / (pow(biom_gDW_ratio, 3) + max_rate);
+  double rate = (EX_B_starv)*(Biom)*MWbio;
   
   if(FlagDebug == 1) {
-    cout << "Biom (pg): " << Biom << endl;
-    cout << "Starvation rate: " << rate << endl;
+    cout << "EX_B_starv (mmol/gDW*h): " << EX_B_starv << ";" << endl;
+    cout << "starv rate (pg): " << rate << ";" << endl;
   }
   
   return(rate);
@@ -581,16 +611,31 @@ double DfourT(double *Value,
   double nBac = Value[NumPlaces.find("CD") -> second];
   double DrugPlace = Value[NumPlaces.find("Drug") -> second];
   
-  double DrugPlaceMIC = 5842.487;
+  //   MM = 171.16*1e-12 # (g/pmol)
+  //
+  // // ref (1) (doi:_?)
+  //   MIC.conc = 1e-06 # (g/mL)
+  //   MIC.conc = (MIC.conc/MM)*1e-09 # (mmol)
+  //   MIC.conc = MIC.conc*1e+09 # (pmol)
+  //   MIC.conc = MIC.conc*602214150000 # (molecule)
+  //
+  // // dose = 0.5 # (g/day) - prescribed dose -
+  //   dose = 0.05 # (g/day) - MIC dose -
+  // // dose = 0.01 # (g/day) - SubMIC dose -
+  
+  double DrugPlaceMIC = 5e+03;
+  //double DrugDose = 1e+04;
+  
+  // testing.function = function (DrugPlace, nBac, Death4Treat, DrugPlaceMIC) {
+  //       DrugPlace*nBac*Death4Treat*(exp((DrugPlace/DrugPlaceMIC)))
+  // }
+  //
+  // plot(testing.function(c(0, 1e+3, 1e+5, 3e+15, 6e+15, 1e+20, 1e+50), 1e+09, 1e-12, 3e+15))
+  
+  // rate = DrugPlace*nBac*Death4Treat*(exp(((DrugPlace/DrugPlaceMIC) - 1)));
   
   rate = DrugPlace*nBac*Death4Treat*(exp((DrugPlace/DrugPlaceMIC)));
   
-  if(FlagDebug == 1) {
-    cout << "Death4Treat: " << Death4Treat << endl;
-    cout << "nBac = " << nBac << " (cell)" << endl;
-    cout << "DrugPlace = " << DrugPlace << " (pmol)" << endl;
-    cout << "rate Death4Treat = " << rate << " (cell)" << endl;
-  }
   
   return(rate);
   
@@ -611,12 +656,6 @@ double Efflux(double *Value,
   
   double rate = DrugPlace*nBac*efflux;
   
-  if(FlagDebug == 1) {
-    cout << "nBac = " << nBac << " (cell)" << endl;
-    cout << "DrugPlace = " << DrugPlace << " (pmol)" << endl;
-    cout << "efflux = " << efflux << " (1/pmol*h*cell)" << endl;
-    cout << "Drug Efflux = " << rate << "(pmol)" << endl;
-  }
   
   return(rate);
   
