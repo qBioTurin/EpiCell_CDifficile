@@ -1,0 +1,101 @@
+#query	mnx_id	reference	xrefs	name
+12DGR180ti				
+13PPDHr				
+13PPDt				
+23DHMPO				
+23PDE2				
+23PDE4				
+23PDE7				
+23PDE9				
+26DAPLLATi				
+2AHBUTI				
+2MBCOATA				
+2MBUTt2r				
+2MECOAOX				
+34DHPHAt2r				
+3BTCOAI				
+3HAD100	MNXR152617	biggR:3HAD100	bigg.reaction:3HAD100 ... bigg.reaction:3HAD100_1 ... bigg.reaction:3HAD101_m ... bigg.reaction:R_3HAD100 ... bigg.reaction:R_3HAD100_1 ... bigg.reaction:R_3HAD101_m ... biggR:3HAD100 ... biggR:3HAD100_1 ... biggR:3HAD101_m ... biggR:R_3HAD100 ... biggR:R_3HAD100_1 ... biggR:R_3HAD101_m ... deprecated:MNXR94876	1 MNXM728730@MNXD1 = 1 MNXM733432@MNXD1 + 1 WATER@MNXD1
+3HAD10M11				
+3HAD10M12				
+3HAD11M12				
+3HAD120	MNXR152620	biggR:3HAD120	bigg.reaction:3HAD120 ... bigg.reaction:3HAD120_1 ... bigg.reaction:3HAD121_m ... bigg.reaction:R_3HAD120 ... bigg.reaction:R_3HAD120_1 ... bigg.reaction:R_3HAD121_m ... biggR:3HAD120 ... biggR:3HAD120_1 ... biggR:3HAD121_m ... biggR:R_3HAD120 ... biggR:R_3HAD120_1 ... biggR:R_3HAD121_m ... deprecated:MNXR94877	1 MNXM728708@MNXD1 + 1 WATER@MNXD1 = 1 MNXM733304@MNXD1
+3HAD12M13				
+3HAD12M14				
+3HAD13M14				
+3HAD140	MNXR152623	biggR:3HAD140	bigg.reaction:3HAD140 ... bigg.reaction:3HAD140_1 ... bigg.reaction:3HAD141_m ... bigg.reaction:R_3HAD140 ... bigg.reaction:R_3HAD140_1 ... bigg.reaction:R_3HAD141_m ... biggR:3HAD140 ... biggR:3HAD140_1 ... biggR:3HAD141_m ... biggR:R_3HAD140 ... biggR:R_3HAD140_1 ... biggR:R_3HAD141_m ... deprecated:MNXR94879	1 MNXM728567@MNXD1 = 1 MNXM728721@MNXD1 + 1 WATER@MNXD1
+3HAD14M15				
+3HAD14M16				
+3HAD15M16				
+3HAD160	MNXR152627	biggR:3HAD160	bigg.reaction:3HAD160 ... bigg.reaction:3HAD160_1 ... bigg.reaction:3HAD161_m ... bigg.reaction:R_3HAD160 ... bigg.reaction:R_3HAD160_1 ... bigg.reaction:R_3HAD161_m ... biggR:3HAD160 ... biggR:3HAD160_1 ... biggR:3HAD161_m ... biggR:R_3HAD160 ... biggR:R_3HAD160_1 ... biggR:R_3HAD161_m ... deprecated:MNXR94881	1 MNXM728711@MNXD1 + 1 WATER@MNXD1 = 1 MNXM733096@MNXD1
+3HAD180	MNXR152629	biggR:3HAD180	bigg.reaction:3HAD180 ... bigg.reaction:3HAD180_1 ... bigg.reaction:R_3HAD180 ... bigg.reaction:R_3HAD180_1 ... biggR:3HAD180 ... biggR:3HAD180_1 ... biggR:R_3HAD180 ... biggR:R_3HAD180_1 ... deprecated:MNXR94883	1 MNXM728718@MNXD1 + 1 WATER@MNXD1 = 1 MNXM735180@MNXD1
+3HAD40	MNXR152632	biggR:3HAD40	bigg.reaction:3HAD40 ... bigg.reaction:3HAD40c ... bigg.reaction:R_3HAD40 ... bigg.reaction:R_3HAD40c ... biggR:3HAD40 ... biggR:3HAD40c ... biggR:R_3HAD40 ... biggR:R_3HAD40c ... deprecated:MNXR94885	1 MNXM728705@MNXD1 + 1 WATER@MNXD1 = 1 MNXM738485@MNXD1
+3HAD4M5				
+3HAD4M6				
+3HAD5M6				
+3HAD60	MNXR152636	biggR:3HAD60	bigg.reaction:3HAD60 ... bigg.reaction:3HAD60_1 ... bigg.reaction:3HAD61_m ... bigg.reaction:R_3HAD60 ... bigg.reaction:R_3HAD60_1 ... bigg.reaction:R_3HAD61_m ... biggR:3HAD60 ... biggR:3HAD60_1 ... biggR:3HAD61_m ... biggR:R_3HAD60 ... biggR:R_3HAD60_1 ... biggR:R_3HAD61_m ... deprecated:MNXR94887	1 MNXM728713@MNXD1 + 1 WATER@MNXD1 = 1 MNXM733048@MNXD1
+3HAD6M7				
+3HAD6M8				
+3HAD7M8				
+3HAD80	MNXR152639	biggR:3HAD80	bigg.reaction:3HAD80 ... bigg.reaction:3HAD80_1 ... bigg.reaction:3HAD81_m ... bigg.reaction:R_3HAD80 ... bigg.reaction:R_3HAD80_1 ... bigg.reaction:R_3HAD81_m ... biggR:3HAD80 ... biggR:3HAD80_1 ... biggR:3HAD81_m ... biggR:R_3HAD80 ... biggR:R_3HAD80_1 ... biggR:R_3HAD81_m ... deprecated:MNXR94888	1 MNXM725895@MNXD1 = 1 MNXM728588@MNXD1 + 1 WATER@MNXD1
+3HAD8M10				
+3HAD8M9				
+3HAD9M10				
+3HBCD				
+3HBCOAE				
+3HBCOAHL	MNXR190062	rheaR:31251	bigg.reaction:3HBCOAHL ... bigg.reaction:3HBCOAHLm ... bigg.reaction:R_3HBCOAHL ... bigg.reaction:R_3HBCOAHLm ... bigg.reaction:R_r0779 ... bigg.reaction:r0779 ... biggR:3HBCOAHL ... biggR:3HBCOAHLm ... biggR:R_3HBCOAHL ... biggR:R_3HBCOAHLm ... biggR:R_r0779 ... biggR:r0779 ... deprecated:MNXR151622 ... deprecated:MNXR163351 ... deprecated:MNXR190063 ... kegg.reaction:R05064 ... keggR:R05064 ... metacyc.reaction:3-HYDROXYISOBUTYRYL-COA-HYDROLASE-RXN ... metacycR:3-HYDROXYISOBUTYRYL-COA-HYDROLASE-RXN ... rhea:31251 ... rhea:31252 ... rhea:31253 ... rhea:31254 ... rheaR:31251 ... rheaR:31252 ... rheaR:31253 ... rheaR:31254 ... sabiork.reaction:4692 ... sabiorkR:4692 ... seed.reaction:rxn17759 ... seed.reaction:rxn27540 ... seed.reaction:rxn27541 ... seedR:rxn17759 ... seedR:rxn27540 ... seedR:rxn27541	1 MNXM1105906@MNXD1 + 1 WATER@MNXD1 = 1 MNXM1105921@MNXD1 + 1 MNXM1@MNXD1 + 1 MNXM727276@MNXD1
+3MOBS				
+3OAR100	MNXR152653	biggR:3OAR100	bigg.reaction:3OAR100 ... bigg.reaction:3OAR100_1 ... bigg.reaction:3OAR100_m ... bigg.reaction:R_3OAR100 ... bigg.reaction:R_3OAR100_1 ... bigg.reaction:R_3OAR100_m ... biggR:3OAR100 ... biggR:3OAR100_1 ... biggR:3OAR100_m ... biggR:R_3OAR100 ... biggR:R_3OAR100_1 ... biggR:R_3OAR100_m ... deprecated:MNXR94941	1 MNXM5@MNXD1 + 1 MNXM728730@MNXD1 = 1 MNXM728594@MNXD1 + 1 MNXM738702@MNXD1
+3OAR10M11				
+3OAR10M12				
+3OAR11M12				
+3OAR120	MNXR152657	biggR:3OAR120	bigg.reaction:3OAR120 ... bigg.reaction:3OAR120_1 ... bigg.reaction:3OAR120_m ... bigg.reaction:R_3OAR120 ... bigg.reaction:R_3OAR120_1 ... bigg.reaction:R_3OAR120_m ... biggR:3OAR120 ... biggR:3OAR120_1 ... biggR:3OAR120_m ... biggR:R_3OAR120 ... biggR:R_3OAR120_1 ... biggR:R_3OAR120_m ... deprecated:MNXR94942	1 MNXM5@MNXD1 + 1 MNXM733304@MNXD1 = 1 MNXM728596@MNXD1 + 1 MNXM738702@MNXD1
+3OAR12M13				
+3OAR12M14				
+3OAR13M14				
+3OAR140	MNXR152660	biggR:3OAR140	bigg.reaction:3OAR140 ... bigg.reaction:3OAR140_1 ... bigg.reaction:3OAR140_m ... bigg.reaction:R_3OAR140 ... bigg.reaction:R_3OAR140_1 ... bigg.reaction:R_3OAR140_m ... biggR:3OAR140 ... biggR:3OAR140_1 ... biggR:3OAR140_m ... biggR:R_3OAR140 ... biggR:R_3OAR140_1 ... biggR:R_3OAR140_m ... deprecated:MNXR94944	1 MNXM5@MNXD1 + 1 MNXM728567@MNXD1 = 1 MNXM728614@MNXD1 + 1 MNXM738702@MNXD1
+3OAR14M15				
+3OAR14M16				
+3OAR15M16				
+3OAR160	MNXR152664	biggR:3OAR160	bigg.reaction:3OAR160 ... bigg.reaction:3OAR160_1 ... bigg.reaction:3OAR160_m ... bigg.reaction:R_3OAR160 ... bigg.reaction:R_3OAR160_1 ... bigg.reaction:R_3OAR160_m ... biggR:3OAR160 ... biggR:3OAR160_1 ... biggR:3OAR160_m ... biggR:R_3OAR160 ... biggR:R_3OAR160_1 ... biggR:R_3OAR160_m ... deprecated:MNXR94946	1 MNXM5@MNXD1 + 1 MNXM733096@MNXD1 = 1 MNXM728600@MNXD1 + 1 MNXM738702@MNXD1
+3OAR180	MNXR152667	biggR:3OAR180	bigg.reaction:3OAR180 ... bigg.reaction:3OAR180_1 ... bigg.reaction:R_3OAR180 ... bigg.reaction:R_3OAR180_1 ... biggR:3OAR180 ... biggR:3OAR180_1 ... biggR:R_3OAR180 ... biggR:R_3OAR180_1 ... deprecated:MNXR94948	1 MNXM3491@MNXD1 + 1 MNXM738702@MNXD1 = 1 MNXM5@MNXD1 + 1 MNXM735180@MNXD1
+3OAR40	MNXR152669	biggR:3OAR40	bigg.reaction:3OAR40 ... bigg.reaction:3OAR40c ... bigg.reaction:R_3OAR40 ... bigg.reaction:R_3OAR40c ... biggR:3OAR40 ... biggR:3OAR40c ... biggR:R_3OAR40 ... biggR:R_3OAR40c ... deprecated:MNXR94950	1 MNXM5@MNXD1 + 1 MNXM738485@MNXD1 = 1 MNXM727386@MNXD1 + 1 MNXM738702@MNXD1
+3OAR4M5				
+3OAR4M6				
+3OAR5M6				
+3OAR60	MNXR152674	biggR:3OAR60	bigg.reaction:3OAR60 ... bigg.reaction:3OAR60_1 ... bigg.reaction:3OAR60_m ... bigg.reaction:R_3OAR60 ... bigg.reaction:R_3OAR60_1 ... bigg.reaction:R_3OAR60_m ... biggR:3OAR60 ... biggR:3OAR60_1 ... biggR:3OAR60_m ... biggR:R_3OAR60 ... biggR:R_3OAR60_1 ... biggR:R_3OAR60_m ... deprecated:MNXR94952	1 MNXM5@MNXD1 + 1 MNXM733048@MNXD1 = 1 MNXM728604@MNXD1 + 1 MNXM738702@MNXD1
+3OAR6M7				
+3OAR6M8				
+3OAR7M8				
+3OAR80	MNXR152677	biggR:3OAR80	bigg.reaction:3OAR80 ... bigg.reaction:3OAR80_1 ... bigg.reaction:3OAR80_m ... bigg.reaction:R_3OAR80 ... bigg.reaction:R_3OAR80_1 ... bigg.reaction:R_3OAR80_m ... biggR:3OAR80 ... biggR:3OAR80_1 ... biggR:3OAR80_m ... biggR:R_3OAR80 ... biggR:R_3OAR80_1 ... biggR:R_3OAR80_m ... deprecated:MNXR94953	1 MNXM5@MNXD1 + 1 MNXM725895@MNXD1 = 1 MNXM728608@MNXD1 + 1 MNXM738702@MNXD1
+3OAR8M10				
+3OAR8M9				
+3OAR9M10				
+3OAS100	MNXR94954	biggR:3OAS100	bigg.reaction:3OAS100 ... bigg.reaction:3OAS100_1 ... bigg.reaction:3OAS100_h ... bigg.reaction:3OAS100_m ... bigg.reaction:R_3OAS100 ... bigg.reaction:R_3OAS100_1 ... bigg.reaction:R_3OAS100_h ... bigg.reaction:R_3OAS100_m ... biggR:3OAS100 ... biggR:3OAS100_1 ... biggR:3OAS100_h ... biggR:3OAS100_m ... biggR:R_3OAS100 ... biggR:R_3OAS100_1 ... biggR:R_3OAS100_h ... biggR:R_3OAS100_m	1 MNXM13@MNXD1 + 1 MNXM728594@MNXD1 + 1 MNXM740692@MNXD1 = 1 MNXM731937@MNXD1 + 1 MNXM90185@MNXD1
+3OAS10M11				
+3OAS10M12				
+3OAS11M12				
+3OAS120	MNXR94955	biggR:3OAS120	bigg.reaction:3OAS120 ... bigg.reaction:3OAS120_1 ... bigg.reaction:3OAS120_h ... bigg.reaction:3OAS120_m ... bigg.reaction:R_3OAS120 ... bigg.reaction:R_3OAS120_1 ... bigg.reaction:R_3OAS120_h ... bigg.reaction:R_3OAS120_m ... biggR:3OAS120 ... biggR:3OAS120_1 ... biggR:3OAS120_h ... biggR:3OAS120_m ... biggR:R_3OAS120 ... biggR:R_3OAS120_1 ... biggR:R_3OAS120_h ... biggR:R_3OAS120_m	1 MNXM13@MNXD1 + 1 MNXM728596@MNXD1 + 1 MNXM740692@MNXD1 = 1 MNXM731937@MNXD1 + 1 MNXM90236@MNXD1
+3OAS12M13				
+3OAS12M14				
+3OAS13M14				
+3OAS140	MNXR94957	biggR:3OAS140	bigg.reaction:3OAS140 ... bigg.reaction:3OAS140_1 ... bigg.reaction:3OAS140_h ... bigg.reaction:3OAS140_m ... bigg.reaction:R_3OAS140 ... bigg.reaction:R_3OAS140_1 ... bigg.reaction:R_3OAS140_h ... bigg.reaction:R_3OAS140_m ... biggR:3OAS140 ... biggR:3OAS140_1 ... biggR:3OAS140_h ... biggR:3OAS140_m ... biggR:R_3OAS140 ... biggR:R_3OAS140_1 ... biggR:R_3OAS140_h ... biggR:R_3OAS140_m	1 MNXM13@MNXD1 + 1 MNXM728614@MNXD1 + 1 MNXM740692@MNXD1 = 1 MNXM726234@MNXD1 + 1 MNXM731937@MNXD1
+3OAS160	MNXR94959	biggR:3OAS160	bigg.reaction:3OAS160 ... bigg.reaction:3OAS160_1 ... bigg.reaction:3OAS160_h ... bigg.reaction:3OAS160_m ... bigg.reaction:R_3OAS160 ... bigg.reaction:R_3OAS160_1 ... bigg.reaction:R_3OAS160_h ... bigg.reaction:R_3OAS160_m ... biggR:3OAS160 ... biggR:3OAS160_1 ... biggR:3OAS160_h ... biggR:3OAS160_m ... biggR:R_3OAS160 ... biggR:R_3OAS160_1 ... biggR:R_3OAS160_h ... biggR:R_3OAS160_m	1 MNXM13@MNXD1 + 1 MNXM728600@MNXD1 + 1 MNXM740692@MNXD1 = 1 MNXM728548@MNXD1 + 1 MNXM731937@MNXD1
+3OAS180	MNXR94961	biggR:3OAS180	bigg.reaction:3OAS180 ... bigg.reaction:3OAS180_1 ... bigg.reaction:3OAS180_h ... bigg.reaction:R_3OAS180 ... bigg.reaction:R_3OAS180_1 ... bigg.reaction:R_3OAS180_h ... biggR:3OAS180 ... biggR:3OAS180_1 ... biggR:3OAS180_h ... biggR:R_3OAS180 ... biggR:R_3OAS180_1 ... biggR:R_3OAS180_h ... deprecated:MNXR47322	1 MNXM13@MNXD1 + 1 MNXM3491@MNXD1 + 1 MNXM740692@MNXD1 = 1 MNXM728536@MNXD1 + 1 MNXM731937@MNXD1
+3OAS2M3				
+3OAS3M4				
+3OAS4M3O6				
+3OAS4M5				
+3OAS4M6				
+3OAS5M6				
+3OAS60	MNXR94963	biggR:3OAS60	bigg.reaction:3OAS60 ... bigg.reaction:3OAS60_1 ... bigg.reaction:3OAS60_h ... bigg.reaction:3OAS60_m ... bigg.reaction:R_3OAS60 ... bigg.reaction:R_3OAS60_1 ... bigg.reaction:R_3OAS60_h ... bigg.reaction:R_3OAS60_m ... biggR:3OAS60 ... biggR:3OAS60_1 ... biggR:3OAS60_h ... biggR:3OAS60_m ... biggR:R_3OAS60 ... biggR:R_3OAS60_1 ... biggR:R_3OAS60_h ... biggR:R_3OAS60_m	1 MNXM13@MNXD1 + 1 MNXM728604@MNXD1 + 1 MNXM740692@MNXD1 = 1 MNXM731937@MNXD1 + 1 MNXM90458@MNXD1
+3OAS6M7				
+3OAS6M8				
+3OAS7M8				
+3OAS80	MNXR94964	biggR:3OAS80	bigg.reaction:3OAS80 ... bigg.reaction:3OAS80_1 ... bigg.reaction:3OAS80_h ... bigg.reaction:3OAS80_m ... bigg.reaction:R_3OAS80 ... bigg.reaction:R_3OAS80_1 ... bigg.reaction:R_3OAS80_h ... bigg.reaction:R_3OAS80_m ... biggR:3OAS80 ... biggR:3OAS80_1 ... biggR:3OAS80_h ... biggR:3OAS80_m ... biggR:R_3OAS80 ... biggR:R_3OAS80_1 ... biggR:R_3OAS80_h ... biggR:R_3OAS80_m	1 MNXM13@MNXD1 + 1 MNXM728608@MNXD1 + 1 MNXM740692@MNXD1 = 1 MNXM728619@MNXD1 + 1 MNXM731937@MNXD1
+3OAS8M10				
+3OAS8M9				
+3OAS9M10				
+4HBNOX				
+4HPHACDC				
+4HPHACDC2				
+4HTHRS	MNXR95024	rheaR:30659	bigg.reaction:4HTHRS ... bigg.reaction:4HTHRS_1 ... bigg.reaction:R_4HTHRS ... bigg.reaction:R_4HTHRS_1 ... biggR:4HTHRS ... biggR:4HTHRS_1 ... biggR:R_4HTHRS ... biggR:R_4HTHRS_1 ... deprecated:MNXR239 ... kegg.reaction:R05086 ... keggR:R05086 ... metacyc.reaction:RXN-14125 ... metacycR:RXN-14125 ... rhea:30659 ... rhea:30660 ... rhea:30661 ... rhea:30662 ... rheaR:30659 ... rheaR:30660 ... rheaR:30661 ... rheaR:30662 ... seed.reaction:rxn03446 ... seed.reaction:rxn45473 ... seedR:rxn03446 ... seedR:rxn45473	1 MNXM1802@MNXD1 + 1 MNXM9@MNXD1 = 1 MNXM759@MNXD1 + 1 WATER@MNXD1
