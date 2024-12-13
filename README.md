@@ -26,3 +26,8 @@ The original model, for example, include some unbalanced pseudo reactions. These
 # Model analysis and sensitivity routine
 
 The model's parameterisation is primarily based on values extracted from the literature, except for *Death4Treat*, *Detox*, and *IECsDeath*. These parameters are explored using Partial Rank Correlation Coefficients (PRCC) to observe changes in the overall model dynamics. Then the analysis of the model is performed.
+
+# Github structure
+
+In order to obtain the dynamics showed in Fig.2 (B and C) and Fig.S4 of the [main paper](), the R script *Main.R* must be used. All the files of the model are saved in the *Net* folder, while all the R functions to generate the plot or processing the data and files are saved in the *code* folder.
+For the computational cost and timing valuation, the  R script *TimingEvaluation.R* must be used.

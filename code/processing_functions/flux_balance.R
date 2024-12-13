@@ -146,22 +146,3 @@ flux_balance <- function(model.name,
   return(fbasol)
   
 }
-
-# test
-
-# wd = "/home/raucello/ReconFBA"
-# 
-# source(paste0(wd, "/code/processing_functions/flux_balance.R"))
-# 
-# fbasol = flux_balance(model.name = "e_coli_core",
-#               model.type = "E_coli",
-#               diet = T,
-#               diet.name = "EU_average",
-#               uppbwnd.diet = 10,
-#               custom = F,
-#               gene.exp = F,
-#               GSE = NULL,
-#               react.vec = NULL,
-#               lb.vec = NULL,
-#               ub.vec = NULL,
-#               wd = wd)

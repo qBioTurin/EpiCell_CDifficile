@@ -7,23 +7,28 @@
 #include <fstream>
 #include <cstdio>
 #include <string>
-#include<sstream>
+#include <sstream>
 
+using namespace FBGLPK;
+using namespace std;
+
+static double* Vars;
+static double FBAtime = -1;
 
 static map <string, string> FBAmet;
 static map <string, string> FBAplace;
-static map <string, double> FBAvars;
 
 static double Flag = -1;
+static bool FlagPrev = 0;
 
-static double FlagDebug = 1;
+static bool FlagDebug = 0;
 
 static double gDW_CDmean = 0;
 static double gDW_CDmin = 0;
 static double gDW_CDmax = 0;
 
 // https://doi.org/10.1016/j.ymben.2021.10.012
-// biomass molecular weigth [g/mmol]
+// biomass molecular weigth (g/mmol)
 // biomass defined to have a molecular weight (MW) of 1 (g/mmol)
 static double MWbio = 0;
 
@@ -32,9 +37,14 @@ static double nBacMax = 0;
 // chemical proportionality factors
 static double Na = 0;
 static double c = 0;
+static double cNa = 0;
 
-// multiplicative constant for sensitivity analysis in FBA 
-static double P = 0;
+// multiplicative constant for sensitivity analysis in FBA
+// static double P = 0;
+static vector<double> P;
+
+// exchange reactions index
+static vector<double> reactIndex;
 
 // Maximum biomass growth tollerance
 static double tB = 0;
@@ -63,7 +73,7 @@ double eps = 1e-06;
 
 double EX_B_starv = 0;
 
-static map <string, double> ValuePrev{{"BiomassCD", -1}, {"pheme_c", -1}, 
+static map <string, double> ValuePrev{{"BiomassCD", -1}, {"pheme_c", -1},
                                       {"cys_L_e", -1}, {"trp_L_e", -1},
                                       {"val_L_e", -1}, {"ile_L_e", -1},
                                       {"leu_L_e", -1}, {"pro_L_e", -1}};
@@ -78,13 +88,14 @@ void read_map_string_int(string fname, unordered_map<string,int>& m) {
     {
       line.erase(remove( line.begin(), line.end(), '\"' ),line.end());
       m.insert(pair<string,int>(line,j));
+      //cout << line << ";" << j << endl;
       ++j;
     }
     f.close();
   }
   else
   {
-    std::cerr<<"\nUnable to open " << fname << ": file do not exists\n";
+    cerr<<"\nUnable to open " << fname << ": file do not exists\n";
     exit(EXIT_FAILURE);
   }
 }
@@ -106,14 +117,14 @@ void read_map_string_double(string fname, unordered_map<string,double>& m) {
       if( pos == string::npos)
         pos = length;
       m.insert(pair<string,double>(line.substr(0,pos) , stod(line.substr(pos+1,length))) );
-      cout <<line.substr(0,pos) << ": " << stod(line.substr(pos+1,length)) << " ";
+      cout << line.substr(0,pos) << ": " << stod(line.substr(pos+1,length)) << " ";
       cout << endl;
       ++j;
     }
     f.close();
   }
   else {
-    std::cerr<<"\nUnable to open " << fname << ": file do not exists\n";
+    cerr<<"\nUnable to open " << fname << ": file do not exists\n";
     exit(EXIT_FAILURE);
   }
 }
@@ -135,14 +146,31 @@ void read_constant(string fname, double& Infection_rate) {
     f.close();
   }
   else {
-    std::cerr<<"\nUnable to open " << fname << ": file do not exists\": file do not exists\n";
+    cerr<<"\nUnable to open " << fname << ": file do not exists\": file do not exists\n";
     exit(EXIT_FAILURE);
   }
 }
 
+void read_list_from_file(string file, vector<double>& value_list){
+  ifstream file_written (file);
+  if(file_written.is_open())
+  {
+    string line;
+    //!to read the single line
+    while (getline(file_written, line))
+    {
+      try{
+        value_list.push_back(stod(line));
+      }
+      catch(std::invalid_argument const& ex){
+        cout << "There's an invalid argument in the file " + file << endl;
+      }
+    }
+    file_written.close();
+  }
+}
+
 void init_data_structures(const struct InfTr* Trans, map <string,int>& NumTrans) {
-  
-  // constants used:
   
   read_constant("./gDW_CDmin", gDW_CDmin);
   read_constant("./gDW_CDmean", gDW_CDmean);
@@ -158,11 +186,14 @@ void init_data_structures(const struct InfTr* Trans, map <string,int>& NumTrans)
   read_constant("./Death4Treat", Death4Treat);
   read_constant("./Na", Na);
   read_constant("./c", c);
-  read_constant("./P", P);
+  // read_constant("./P", P);
+  read_list_from_file("./P", P);
+  read_list_from_file("/home/docker/data/input/csv/react_index.txt", reactIndex);
   read_constant("./tB", tB);
   read_constant("./EX_B_starv", EX_B_starv);
   
-  // maps used:
+  cNa = c/Na;
+  
   FBAmet["EX_biomass_e_in"] = "EX_biomass_e";
   FBAmet["sink_pheme_c_in"] = "sink_pheme_c";
   FBAmet["EX_cys_L_e_in"] = "EX_cys_L_e";
@@ -171,25 +202,6 @@ void init_data_structures(const struct InfTr* Trans, map <string,int>& NumTrans)
   FBAmet["EX_ile_L_e_in"] = "EX_ile_L_e";
   FBAmet["EX_leu_L_e_in"] = "EX_leu_L_e";
   FBAmet["EX_pro_L_e_in"] = "EX_pro_L_e";
-  
-  // Biomass was normalized old
-  //FBAvars["EX_biomass_e"] =  0.2975482;
-  //FBAvars["EX_cys_L_e"] = - 0.0000000003436271;
-  //FBAvars["EX_ile_L_e"] =  - 0.000000006328174;
-  //FBAvars["EX_leu_L_e" ] = 0.0;
-  //FBAvars["EX_pro_L_e" ] = 0.0;
-  //FBAvars["EX_trp_L_e" ] = - 0.0000000004240291;
-  //FBAvars["EX_val_L_e" ] = 0.0;
-  //FBAvars["sink_pheme_c"]= - 0.000001172481;
-  
-  FBAvars["EX_biomass_e"] =  0.2975482;
-  FBAvars["EX_cys_L_e"] = 0.0;
-  FBAvars["EX_ile_L_e"] = - 0.00000004408891;
-  FBAvars["EX_leu_L_e" ] = 0.0;
-  FBAvars["EX_pro_L_e" ] = -0.00000004408891;
-  FBAvars["EX_trp_L_e" ] = - 0.0000000004240291;
-  FBAvars["EX_val_L_e" ] = -0.00000002287876;
-  FBAvars["sink_pheme_c"]= - 0.000001172481;
   
   FBAplace["EX_biomass_e_in"] = "BiomassCD";
   FBAplace["sink_pheme_c_in"] = "pheme_c";
@@ -205,8 +217,8 @@ void init_data_structures(const struct InfTr* Trans, map <string,int>& NumTrans)
 }
 
 double trunc(double value, double decimal) {
-  const double multiplier = std::pow(10.0, decimal);
-  return std::floor(value * multiplier) / multiplier;
+  const double multiplier = pow(10.0, decimal);
+  return floor(value * multiplier) / multiplier;
   //return ((unsigned long int)(value * multiplier)) / multiplier;
 }
 
@@ -218,15 +230,164 @@ double FBA(double *Value,
            const struct InfTr* Trans,
            const int T,
            const double& time) {
-  
+
+  bool FBAmarking = 0;
+  // truncation floating
   double decimalTrunc = 12;
   
-  // Check if the data structures need initialization
-  if (Flag == -1)
-    init_data_structures(Trans, NumTrans);
+  if(Flag == -1) init_data_structures(Trans, NumTrans);
   
-  // Retrieve values for specific places
-  double nBac = trunc(Value[NumPlaces["CD"]], decimalTrunc);
+  double nBac = trunc(Value[NumPlaces.find("CD") -> second], decimalTrunc);
+  
+  
+  if (ValuePrev["BiomassCD"] != -1) {
+    FlagPrev = 1;
+  } else {
+    FBAmarking = 1;
+  }
+
+  
+  if(FBAmarking && FBAtime != time)
+  {
+    
+    string TypeBound = "GLP_DB";
+    
+    for(map <string, double>::iterator p = ValuePrev.begin(); p != ValuePrev.end(); ++p) {
+      p -> second = trunc(Value[NumPlaces.find(p -> first) -> second], decimalTrunc );
+    }
+    
+    for (map<string, string>::iterator p = FBAmet.begin(); p != FBAmet.end(); ++p) {
+      
+      int index = vec_fluxb[0].fromNametoid(p->second);
+      
+      double Ub = vec_fluxb[0].getUpBounds(index);
+      double Lb = vec_fluxb[0].getLwBounds(index);
+      
+      double Biom = trunc(Value[NumPlaces.find("BiomassCD") -> second], decimalTrunc );
+      
+      if(p -> first == "EX_biomass_e_in") {
+        
+        // DOI: - 10.1038/s41598-019-55041-w
+        // a growth rate of 0.20 (1/h) (stardard for C. diff)
+        // requires biomass production = 0.14 (mmol/gDW*h)
+        
+        // to make further comparison
+        // https://doi.org/10.1371/journal.pcbi.1008137
+        // a growth rate of 0.20 (1/h) (stardard for C. diff)
+        // requires glucose uptake = 30 (mmol/gDW*h)
+        
+        // also, https://www.nature.com/articles/s41598-019-55041-w
+        
+        if ((gDW_CDmax - Biom) > tB) {
+          Ub = (gDW_CDmax - Biom);
+        } else {
+          Ub = tB;
+        }
+        
+      }
+      else if (p -> first == "sink_pheme_c_in") {
+        
+        double Met = trunc(Value[NumPlaces[FBAplace[p -> first]]], decimalTrunc );
+        
+        // in the model heme is measured as (pmol)
+        // in FBA bounds are in (mmol)
+        // (pmol) in (mmol) = 1e-09
+        
+        if(nBac < 1){
+          Lb = -(Met*1e-09)/(Biom*1e-12);
+        } else {
+          Lb = (-(Met*1e-09)/(nBac*Biom*1e-12));
+        }
+        
+        Ub = 10;
+        
+      }
+      else {
+        
+        double Met = trunc(Value[NumPlaces[FBAplace[p->first]]], decimalTrunc );
+        
+        // in the model AAs are measured as (C_molecules)
+        // in FBA bounds are in (mmol)
+        // quick conversion: 1 mmol = 6.02214154+20 molecules
+        // 6.02214154+20 molecules = Na
+        
+        if(nBac < 1){
+          Lb = -((Met*cNa)/(Biom*1e-12));
+        } else {
+          Lb = -((Met*cNa)/(nBac*Biom*1e-12));
+        }
+        
+        Ub = 0.0;
+        
+        // cout << "Trans: " << p -> first << ", Met = " << Met << " (Cmolecule):" << endl;
+        // cout << "Trans: " << p -> first << ", Lb = " << Lb << " (mmol)" << endl;
+        // cout << "Trans: " << p -> first << ", Ub = " << Ub << " (mmol)" << endl;
+        
+      }
+      
+      double Lbtr = trunc(Lb, decimalTrunc);
+      double Ubtr = trunc(Ub, decimalTrunc);
+      
+      // cout << "Transition:" << p -> first << endl;
+      // cout << "bounds: [" << Lb <<" , " << Ub << "]" << endl;
+      // cout << "Truncated bounds: [" << Lbtr <<" , " << Ubtr << "]" << endl;
+      
+      cout << "Reaction pos: " << index << endl;
+      
+      vec_fluxb[0].update_bound(index, TypeBound, Lbtr, Ubtr);
+      
+    }
+    
+    // sansitivitivy on all the other obundary reaction's bounds  
+    
+    // ifstream file("/home/docker/data/Input/csv/React_index.txt");
+    // string str;
+    
+    // while (getline(file, str)) {
+    for (int i = 0; i < (int)P.size(); i++) {
+      
+      // int index = stoi(str);
+      
+      double Ub = vec_fluxb[0].getUpBounds(reactIndex[i])*P[i];
+      double Lb = vec_fluxb[0].getLwBounds(reactIndex[i])*P[i];
+      
+      double Lbtr = trunc(Lb, decimalTrunc);
+      double Ubtr = trunc(Ub, decimalTrunc);
+      
+      vec_fluxb[0].update_bound(reactIndex[i], TypeBound, Lbtr, Ubtr);
+      
+      cout << "Reaction index: " << reactIndex[i] << endl;
+      cout << "Parameter: " << P[i] << endl;
+      
+      cout << "New Lower Bound (Lb*P): " << Lbtr << endl;
+      cout << "New Upper Bound (Ub*P): " << Ubtr << endl;
+      
+      }
+    
+    // file.close();
+    
+    vec_fluxb[0].solve();
+    Vars = vec_fluxb[0].getVariables();
+    
+    double marking = 0;
+    double flux = 0;
+    
+    for(map <string, string>::iterator p = FBAmet.begin(); p != FBAmet.end(); ++p) {
+      int indexFBA = vec_fluxb[0].fromNametoid(p -> second);
+      flux = trunc(Vars[indexFBA], decimalTrunc );
+      
+      int indexPN = NumPlaces.find(FBAplace.find(p -> first) -> second) -> second;
+      marking = trunc(Value[indexPN], decimalTrunc );
+      
+      if (marking == 0) {
+        Vars[indexFBA] = flux;
+      } else {
+        Vars[indexFBA] = (flux/marking);
+      }
+    }
+    
+    FBAtime = time;
+  }
   
   bool Out = 0;
   bool In = 0;
@@ -240,11 +401,9 @@ double FBA(double *Value,
     In = 1;
   }
   
-  // Retrieve biomass value
-  double Biom = trunc(Value[NumPlaces["BiomassCD"]], decimalTrunc);
-  
-  // Retrieve rateFBA value
-  double rateFBA = trunc(FBAvars[FBAmet[str]], decimalTrunc );
+  int index = vec_fluxb[0].fromNametoid(FBAmet.find(str) -> second);
+  double Biom = trunc(Value[NumPlaces.find("BiomassCD") -> second], decimalTrunc );
+  double rateFBA = trunc(Vars[index], decimalTrunc ) ;
   double r = 0;
   double rate = 0;
   
@@ -260,7 +419,6 @@ double FBA(double *Value,
     r = (rate*Na*(1/c))*(nBac*Biom*1e-12); 
   }
   
-  // Set the rate based on the conditions
   if((Out) && (rateFBA > 0))
     rate = r;
   else if((Out) && (rateFBA < 0))
@@ -270,45 +428,49 @@ double FBA(double *Value,
   else if((In) && (rateFBA < 0))
     rate = -r;
   
-  return rate;
+  return(rate);
 }
-
 
 // Inflam transition
 double Heam(double *Value,
             vector<class FBGLPK::LPprob>& vec_fluxb,
-            map<string, int>& NumTrans,
-            map<string, int>& NumPlaces,
-            const vector<string>& NameTrans,
+            map <string,int>& NumTrans,
+            map <string,int>& NumPlaces,
+            const vector<string> & NameTrans,
             const struct InfTr* Trans,
             const int T,
             const double& time) {
   
-  // Check if the data structures need initialization
-  if (Flag == -1)
-    init_data_structures(Trans, NumTrans);
+  if(Flag == -1) init_data_structures(Trans, NumTrans);
   
-  // Retrieve the value of the Damage place and calculate the percentage of damage
-  double DamagePlace = Value[NumPlaces["Damage"]];
-  double PercDamage = DamagePlace / DAMAGEmax;
+  double rate = 0;
   
-  // Calculate the rate based on the percentage of damage
-  double rate = PercDamage * Inflammation;
+  double DamagePlace = Value[NumPlaces.find("Damage") -> second];
+  double PercDamage = DamagePlace/DAMAGEmax;
   
-  // Print the rate if FlagDebug is set to 1
-  if (FlagDebug == 1) {
+  // if(PercDamage <= 0.1){
+  //   g = 0;
+  // } else if((PercDamage > 0.1) && (PercDamage <= 0.7)){
+  //   g = 1/3;
+  // } else if(PercDamage > 0.7){
+  //   g = 1;
+  // }
+  
+  rate = PercDamage*Inflammation;
+  
+  if(FlagDebug == 1) {
     cout << "Inflammation (pmol): " << rate << endl;
   }
   
-  return rate;
+  return(rate);
 }
 
 // DeathBac transition
 double DeathCD(double *Value,
                vector<class FBGLPK::LPprob>& vec_fluxb,
-               map<string, int>& NumTrans,
-               map<string, int>& NumPlaces,
-               const vector<string>& NameTrans,
+               map <string,int>& NumTrans,
+               map <string,int>& NumPlaces,
+               const vector<string> & NameTrans,
                const struct InfTr* Trans,
                const int T,
                const double& time) {
@@ -335,9 +497,9 @@ double DeathCD(double *Value,
 // Dup transition
 double Duplication(double *Value,
                    vector<class FBGLPK::LPprob>& vec_fluxb,
-                   map<string, int>& NumTrans,
-                   map<string, int>& NumPlaces,
-                   const vector<string>& NameTrans,
+                   map <string,int>& NumTrans,
+                   map <string,int>& NumPlaces,
+                   const vector<string> & NameTrans,
                    const struct InfTr* Trans,
                    const int T,
                    const double& time) {
@@ -371,14 +533,12 @@ double Duplication(double *Value,
 // Starv transition
 double Starvation(double *Value,
                   vector<class FBGLPK::LPprob>& vec_fluxb,
-                  map<string, int>& NumTrans,
-                  map<string, int>& NumPlaces,
-                  const vector<string>& NameTrans,
+                  map <string,int>& NumTrans,
+                  map <string,int>& NumPlaces,
+                  const vector<string> & NameTrans,
                   const struct InfTr* Trans,
                   const int T,
-                  const double& time) {
-  
-  double rate = 0;
+                  const double & time) {
   
   if(Flag == -1) {
     init_data_structures(Trans, NumTrans);
@@ -386,7 +546,7 @@ double Starvation(double *Value,
   
   double Biom = Value[NumPlaces.find("BiomassCD") -> second];
   
-  rate = (EX_B_starv)*(Biom)*MWbio;
+  double rate = (EX_B_starv)*(Biom)*MWbio;
   
   if(FlagDebug == 1) {
     cout << "EX_B_starv (mmol/gDW*h): " << EX_B_starv << ";" << endl;
@@ -400,12 +560,12 @@ double Starvation(double *Value,
 // Death4Treat
 double DfourT(double *Value,
               vector<class FBGLPK::LPprob>& vec_fluxb,
-              map<string, int>& NumTrans,
-              map<string, int>& NumPlaces,
-              const vector<string>& NameTrans,
+              map <string,int>& NumTrans,
+              map <string,int>& NumPlaces,
+              const vector<string> & NameTrans,
               const struct InfTr* Trans,
               const int T,
-              const double& time) {
+              const double & time) {
   
   double rate = 0;
   
@@ -425,6 +585,7 @@ double DfourT(double *Value,
   // // dose = 0.01 # (g/day) - SubMIC dose -
   
   double DrugPlaceMIC = 5e+03;
+  //double DrugDose = 1e+04;
   
   // testing.function = function (DrugPlace, nBac, Death4Treat, DrugPlaceMIC) {
   //       DrugPlace*nBac*Death4Treat*(exp((DrugPlace/DrugPlaceMIC)))
@@ -433,14 +594,9 @@ double DfourT(double *Value,
   // plot(testing.function(c(0, 1e+3, 1e+5, 3e+15, 6e+15, 1e+20, 1e+50), 1e+09, 1e-12, 3e+15))
   
   // rate = DrugPlace*nBac*Death4Treat*(exp(((DrugPlace/DrugPlaceMIC) - 1)));
+  
   rate = DrugPlace*nBac*Death4Treat*(exp((DrugPlace/DrugPlaceMIC)));
   
-  if(FlagDebug == 1) {
-    cout << "Death4Treat: " << Death4Treat << endl;
-    cout << "nBac = " << nBac << " (cell)" << endl;
-    cout << "DrugPlace = " << DrugPlace << " (pmol)" << endl;
-    cout << "rate Death4Treat = " << rate << " (cell)" << endl;
-  }
   
   return(rate);
   
@@ -449,18 +605,18 @@ double DfourT(double *Value,
 // Efflux transition
 double Efflux(double *Value,
               vector<class FBGLPK::LPprob>& vec_fluxb,
-              map<string, int>& NumTrans,
-              map<string, int>& NumPlaces,
-              const vector<string>& NameTrans,
+              map <string,int>& NumTrans,
+              map <string,int>& NumPlaces,
+              const vector<string> & NameTrans,
               const struct InfTr* Trans,
               const int T,
               const double& time) {
-
+  
   double nBac = Value[NumPlaces.find("CD") -> second];
   double DrugPlace = Value[NumPlaces.find("Drug") -> second];
   
   double rate = DrugPlace*nBac*efflux;
-
+  
   
   return(rate);
   

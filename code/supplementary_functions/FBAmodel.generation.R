@@ -1,4 +1,6 @@
 
+devtools::install_github("https://github.com/qBioTurin/epimod_FBAfunctions")
+
 # The aim of this method is to generate a suitable ".Rdata" file model that 
 # can be compiled into *FBAmodel* file subjected to epimod framework through model.generation()
 
@@ -27,11 +29,7 @@ FBAmodel.gen = function(model.type,
   source(paste0(wd, "/code/processing_functions/modelorg2tsv.R"))
   source(paste0(wd, "/code/processing_functions/Eval_ReactionExpression.R"))
   source(paste0(wd, "/code/processing_functions/findReactEq.R"))
-  
-  source(paste0(wd, "/code/epimod_FBAfunctions/R/class_generation.R"))
-  source(paste0(wd, "/code/epimod_FBAfunctions/R/FBAgreatmodeClass.R"))
-  source(paste0(wd, "/code/epimod_FBAfunctions/R/readMat.R"))
-  
+
   mat.file = paste0(wd, "/input/", model.type, "/", model.name, "/", model.name, ".mat")
   model.file = paste0(wd, "/input/", model.type, "/", model.name, "/", model.name, ".RData")
   all.react.file = paste0(wd, "/input/", model.type, "/", model.name, "/all.react.rds")

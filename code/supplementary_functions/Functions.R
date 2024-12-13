@@ -1,20 +1,5 @@
 
 init.gen <- function(n_file, file, d, zero, zeroH) {
-  
-  # 4 debug:
-  # 
-  # n_file = "/home/raucello/EpiCell_CDifficile/input/NAMES.RDS"
-  # file = "/home/raucello/EpiCell_CDifficile/input/diets/diets.RData"
-  # d = "EU_average"
-  # zero = F
-  # zeroH = F
-
-  # init = init.gen(n_file = "/home/raucello/EpiCell_CDifficile/input/NAMES.RDS",
-  #                 file = "/home/raucello/EpiCell_CDifficile/input/diets/diets.RData",
-  #                 d = "EU_average",
-  #                 zero = F,
-  #                 zeroH = F)
-  
   yini.names = readRDS(n_file)
   
   # The determination of heme concentrations in different conditions range from 20 to > 350 μmol/L as occurring, 

@@ -12,7 +12,6 @@
 using namespace FBGLPK;
 
 static double* Vars;
-
 static double FBAtime = -1;
 
 static map <string, string> FBAmet;
@@ -167,6 +166,7 @@ void init_data_structures(const struct InfTr* Trans, map <string,int>& NumTrans)
   read_constant("./P", P);
   read_constant("./tB", tB);
   read_constant("./EX_B_starv", EX_B_starv);
+  read_constant("./eps", eps);
   
   cNa = c/Na;
   
@@ -250,7 +250,7 @@ double FBA(double *Value,
     }
   }
   
-  if(FBAmarking && FBAtime != time) {
+  if(FBAmarking) {// && FBAtime != time) {
     
     // cout << "FBA calling ..." << endl;
     
@@ -323,6 +323,23 @@ double FBA(double *Value,
     
     vec_fluxb[0].solve();
     Vars = vec_fluxb[0].getVariables();
+  
+    //double marking = 0;
+    //double flux = 0;
+    
+   // for(map <string, string>::iterator p = FBAmet.begin(); p != FBAmet.end(); ++p) {
+     //int indexFBA = vec_fluxb[0].fromNametoid(p -> second);
+      //flux = trunc(Vars.at(indexFBA), decimalTrunc );
+      
+      //int indexPN = NumPlaces.find(FBAplace.find(p -> first) -> second) -> second;
+      //marking = Value[indexPN];
+      
+      //if (marking == 0) {
+      //  Vars.at(indexFBA) = flux;
+      //} else {
+      //  Vars.at(indexFBA) = (flux/marking);
+      //}
+      //}
     
     FBAtime = time;
     
@@ -341,32 +358,27 @@ double FBA(double *Value,
   }
   
   int index = vec_fluxb[0].fromNametoid(FBAmet.find(str) -> second);
-
   double Biom = trunc(Value[NumPlaces.find("BiomassCD") -> second], decimalTrunc );
-  
-  rate = trunc(Vars[index], decimalTrunc );
+  double rate = trunc(Vars[index], decimalTrunc ) ;
   double r = 0;
-  
+
   if (str == "EX_biomass_e_in") {
-
-     r = MWbio*rate;
-
-  } else if(str.find("_L_e") != string::npos) {
-    r = (rate*Na*(1/c))*(nBac*Biom*1e-12);
+      r = MWbio*rate*Biom*(1 - (Biom/gDW_CDmax));
+    } else if(str.find("_L_e") != string::npos) {
+      r = rate * 1e+09 * (nBac * Biom * 1e-12);
+    } else{
+      r = (rate*Na*(1/c))*(nBac*Biom*1e-12); 
+    }
     
-  } else {
-    r = ((rate*1e+09)*(nBac*Biom*1e-12));
-  }
-  
-  if((Out) && (rate > 0))
-    rate = r;
-  else if((Out) && (rate < 0))
-    rate = 0;
-  else if((In) && (rate > 0))
-    rate = 0;
-  else if((In) && (rate < 0))
-    rate = -r;
-  
+    if((Out) && (rate > 0))
+      rate = r;
+    else if((Out) && (rate < 0))
+      rate = 0;
+    else if((In) && (rate > 0))
+      rate = 0;
+    else if((In) && (rate < 0))
+      rate = -r;
+
   return(rate);
   
 }
@@ -384,7 +396,6 @@ double Heam(double *Value,
   if(Flag == -1) init_data_structures(Trans, NumTrans);
   
   double rate = 0;
-  double g = 0;
   
   double DamagePlace = Value[NumPlaces.find("Damage") -> second];
   double PercDamage = DamagePlace/DAMAGEmax;
@@ -526,7 +537,7 @@ double DfourT(double *Value,
   // // dose = 0.01 # (g/day) - SubMIC dose -
   
   double DrugPlaceMIC = 5e+03;
-  double DrugDose = 1e+04;
+  //double DrugDose = 1e+04;
   
   // testing.function = function (DrugPlace, nBac, Death4Treat, DrugPlaceMIC) {
   //       DrugPlace*nBac*Death4Treat*(exp((DrugPlace/DrugPlaceMIC)))
