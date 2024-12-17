@@ -139,8 +139,10 @@ fba_fname = paste0(model.name, ".txt")
 atol = 1e-06
 rtol = 1e-06
 time.step = 1
-f_time = 72
-event_times = c(8, 16, 24, 32, 40, 48)
+f_time = 17
+# f_time = 72
+event_times = c(8, 16)
+# event_times = c(8, 16, 24, 32, 40, 48)
 distance_measure = "ReferenceM"
 parameters_fname <- "input/csv/ParametersListSinkHeme_eps.csv"
 supp_function.dir = "/code/supplementary_functions/"
@@ -148,15 +150,15 @@ supp_function.dir = "/code/supplementary_functions/"
 ######################
 
 
-#### parameters closest to the median trances in FIG2B ####
-source("~/EpiCell_CDifficile/code/supplementary_functions/MedianParamsConfiguration.R")
-
-resParams = configuration.closeMedian(Condition = "Therapy",
-                                      tag = c( "Unified"))
-
-resParams$plot
-
-saveRDS(resParams,file = "paramsProve.RDs") ## Da caricare se non si ha la sensitivity
+# #### parameters closest to the median trances in FIG2B ####
+# source("~/EpiCell_CDifficile/code/supplementary_functions/MedianParamsConfiguration.R")
+# 
+# resParams = configuration.closeMedian(Condition = "Therapy",
+#                                       tag = c( "Unified"))
+# 
+# resParams$plot
+# saveRDS(resParams,file = "paramsProve.RDs") ## Da caricare se non si ha la sensitivity
+resParams <- readRDS("~/git/EpiCell_CDifficile/paramsProve.RDs")
 ############
 
 # epstimes = c("1e-6","1e-4","1e-2")
@@ -164,7 +166,7 @@ saveRDS(resParams,file = "paramsProve.RDs") ## Da caricare se non si ha la sensi
 # tag = c("Ablated", "Unified")
 # paramsgrid = rbind(expand.grid("1e-6",numbConfig,"Ablated"), expand.grid(epstimes,numbConfig,"Unified"))
 
-tag = c("Ablated", "Unified", "ParAblated")
+tag = c("Ablated", "ParAblated", "Unified")
 paramsgrid = expand.grid("1e-6",1,tag)
 
 MultipleAnalysis = lapply(seq_along(paramsgrid[,1]),
@@ -203,19 +205,22 @@ MultipleAnalysis = lapply(seq_along(paramsgrid[,1]),
                             
                             # Read the file
                             file_path <- list.files(path = wd, pattern = "\\.log$", full.names = TRUE)
-                            lines <- readLines(file_path)
-                            file.remove(file_path)
-                            # Filter lines containing "Total memory used" or "Total time required"
-                            extracted_lines <- grep("Total memory used|Total time required", lines, value = TRUE)
                             
-                            # Extract time and memory separately
-                            times <- as.numeric(sub(".*Total time required: ([0-9]+)s.*", "\\1", extracted_lines[grepl("time required", extracted_lines)]))
-                            memory <- as.numeric(sub(".*Total memory used: ([0-9]+)KB.*", "\\1", extracted_lines[grepl("memory used", extracted_lines)]))
-                            
-                            # Create a data frame
-                            result_df <- data.frame(Time_s = sum(times), Memory_KB = sum(memory),
-                                                    GlobalExecution_time = execution_time, eps = new_eps_value,
-                                                    params = paramsConfig[nconfig,"ConfParams"], Scenario = tag)
+                            file.rename(file_path, paste0(tag, ".cout"))
+
+                            # # lines <- readLines(file_path)
+                            # # file.remove(file_path)
+                            # # Filter lines containing "Total memory used" or "Total time required"
+                            # extracted_lines <- grep("Total memory used|Total time required", lines, value = TRUE)
+                            # 
+                            # # Extract time and memory separately
+                            # times <- as.numeric(sub(".*Total time required: ([0-9]+)s.*", "\\1", extracted_lines[grepl("time required", extracted_lines)]))
+                            # memory <- as.numeric(sub(".*Total memory used: ([0-9]+)KB.*", "\\1", extracted_lines[grepl("memory used", extracted_lines)]))
+                            # 
+                            # # Create a data frame
+                            # result_df <- data.frame(Time_s = sum(times), Memory_KB = sum(memory),
+                            #                         GlobalExecution_time = execution_time, eps = new_eps_value,
+                            #                         params = paramsConfig[nconfig,"ConfParams"], Scenario = tag)
                             
                             resFolder = paste0("./results/TimingEval/CDiff", tag, Condition,
                                                new_eps_value, gsub(pattern = " ",replacement = "",x = paramsConfig[nconfig,"ConfParams"]), collapse  = "_")
@@ -232,20 +237,20 @@ MultipleAnalysis = lapply(seq_along(paramsgrid[,1]),
                                                        paramsConfig[nconfig,"ConfParams"],
                                                        tag
                             )
-                            return(list(traces = traces, timing = result_df))
+                            return(list(traces = traces))
                           },paramsConfig = resParams$Config,paramsgrid)
 
 
-timing = do.call(rbind, lapply(MultipleAnalysis,"[[",2) )
+# timing = do.call(rbind, lapply(MultipleAnalysis,"[[",2) )
 flux = do.call(rbind, lapply(lapply(MultipleAnalysis,"[[",1),"[[",1) )
 subtrace = do.call(rbind, lapply(lapply(MultipleAnalysis,"[[",1),"[[",2) )
-subtrace$new_eps_value = factor(subtrace$new_eps_value,levels = epstimes)
-flux$new_eps_value = factor(flux$new_eps_value,levels = epstimes)
+# subtrace$new_eps_value = factor(subtrace$new_eps_value,levels = epstimes)
+# flux$new_eps_value = factor(flux$new_eps_value,levels = epstimes)
 #subtrace$config = factor(subtrace$config, levels = numbConfig)
 #flux$config = factor(flux$config, levels = numbConfig)
 subtrace$ConfParams = subtrace$config
 
-ggplot( subtrace%>%filter(Time < 10) )+
+ggplot( subtrace%>%filter(Time < 15) )+
   geom_line(aes(x = Time, y = Marking, linetype = tag, col = tag ))+
   facet_wrap(Places~new_eps_value,scales = "free")+
   theme_bw()+
@@ -259,9 +264,8 @@ ggplot( subtrace%>%filter(Time < 10) )+
     strip.text.y = element_text(size = 10, face = "bold", colour = "black"),
     strip.background.y = element_rect( fill = "white"),
     legend.position = "top")+
-  labs(x = "Time (h)",y = "Quantity", linetype = "Scenario")
-
-
+  labs(x = "Time (h)",y = "Quantity", linetype = "Scenario") +
+  geom_vline(xintercept = 8)
 
 saveRDS(list(trace = subtrace,flux = flux, timing = timing),file = "tracesFluxes.RDs")
 tracesFluxes <- readRDS(paste0(wd,"/tracesFluxes.RDs"))

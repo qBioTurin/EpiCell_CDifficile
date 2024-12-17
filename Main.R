@@ -113,7 +113,7 @@ for (ablation in c("Unified", "ParAblated", "Ablated")) {
           FVAcomparison = F,
           react = "EX_biomass_e",
           debugFVA = F,
-          replicates = 20,
+          replicates = 11,
           param_target = c("IECsDeath", "Death4Treat", "Detox"),
           net_fname = "EpitCellDifficileHemeSink",
           cores = detectCores(),

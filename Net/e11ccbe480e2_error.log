@@ -1,0 +1,118 @@
+
+
+--------------------------------------------------------------------
+                      Generation ODE/SDE model
+--------------------------------------------------------------------
+
+
+-H CD196HemeSink.txt
+Compiling general transition file
+
+Enabling flux balance.
+SAVING TIME: 0.006
+
+#Computing p-semiflows and place bounds: 
+/usr/local/GreatSPN/bin/PN2ODE /home/EpitCellDifficileHemeSink_unf -M -H CD196HemeSink.txt
+
+
+ =========================================================
+|	      	        PN to ODE        	          |
+ =========================================================
+
+ If you find any bug, send an email to beccuti@di.unito.it!
+Transition EX_pro_L_e_in has function:  Call["FBA"]
+
+Transition EX_biomass_e_out has function:  Call["FBA"]
+
+Transition EX_val_L_e_in has function:  Call["FBA"]
+
+Transition EX_ile_L_e_in has function:  Call["FBA"]
+
+Transition EX_leu_L_e_out has function:  Call["FBA"]
+
+Transition EX_cys_L_e_in has function:  Call["FBA"]
+
+Transition EX_trp_L_e_in has function:  Call["FBA"]
+
+Transition Inflam has function:  Call["Heam"]
+
+Transition EX_cys_L_e_out has function:  Call["FBA"]
+
+Transition EX_trp_L_e_out has function:  Call["FBA"]
+
+Transition EX_val_L_e_out has function:  Call["FBA"]
+
+Transition EX_ile_L_e_out has function:  Call["FBA"]
+
+Transition EX_leu_L_e_in has function:  Call["FBA"]
+
+Warning: it is not possible to open input file .bnd
+
+Warning: it is not possible to open input file .pin
+Transition EX_biomass_e_in has function:  Call["FBA"]
+
+Transition Starv has function:  Call["Starvation"]
+
+Transition DeathBac has function:  Call["DeathCD"]
+
+Transition Dup has function:  Call["Duplication"]
+
+Transition Death4Treat has function:  Call["DfourT"]
+
+Transition sink_pheme_c_out has function:  Call["FBA"]
+
+Transition Efflux has function:  Call["Efflux"]
+
+
+Transition sink_pheme_c_in has function:  Call["FBA"]
+
+Transition EX_pro_L_e_out has function:  Call["FBA"]
+
+
+
+------------------------------------------------
+               Start  encoding
+------------------------------------------------
+
+Opening file: /home/EpitCellDifficileHemeSink_unf.bnd
+Opening file: /home/EpitCellDifficileHemeSink_unf.pin
+
+
+START EXECUTION...
+
+	Warning: no imlicit places are considered.
+
+	Done.
+
+------------------------------------------------
+                 End encoding
+------------------------------------------------
+
+
+===================== INFO =====================
+ Total Time: 0.000968 sec
+ Total Used Memory: 3648KB
+ Output saved in: EpitCellDifficileHemeSink_unf.cpp
+================================================
+
+
+/home/EpitCellDifficileHemeSink_unf
+#cd /usr/local/GreatSPN/scripts/../inst_src
+#Copying file form /usr/local/GreatSPN/scripts/../inst_src to /tmp/tmp.lGOGK4w7mZ
+
+#cat /tmp/tmp.lGOGK4w7mZ/tmpB /tmp/tmp.lGOGK4w7mZ/incl1  /home/gen_tran_out.cpp  /tmp/tmp.lGOGK4w7mZ/tmpE >> /tmp/tmp.lGOGK4w7mZ/tmpA
+FuncT
+#cat /tmp/tmp.lGOGK4w7mZ/tmpA >>  /tmp/tmp.lGOGK4w7mZ/class.cpp
+
+#cd /tmp/tmp.lGOGK4w7mZ
+
+#Compiling ... 
+g++ -D CGLPK -I./  -o  /home/EpitCellDifficileHemeSink_unf.solver  /home/EpitCellDifficileHemeSink_unf.cpp  ./class.cpp  ./lsode.cpp ./GLPKsolve.cpp ./general.cpp ./readSupport.cpp -O3 -std=c++11 -lm -Wall -lglpk
+./class.cpp: In function ‘double SDE::FBA(double*, std::vector<FBGLPK::LPprob>&, std::map<std::__cxx11::basic_string<char>, int>&, std::map<std::__cxx11::basic_string<char>, int>&, const std::vector<std::__cxx11::basic_string<char> >&, const InfTr*, int, const double&)’:
+./class.cpp:4576:23: error: ‘met’ was not declared in this scope
+ 4576 |   cout << "met = " << met << endl;
+      |                       ^~~
+make: *** [makefile:30: fluxb] Error 1
+#Error during compilation. 
+
+
