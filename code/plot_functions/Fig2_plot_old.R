@@ -30,15 +30,9 @@ plotting_Fig2_paper = function(Exper,
   units = c(rep("(cell)", 2), "(pg)", rep("(µmol)", 9))
   
   subtrace <- do.call(rbind, lapply(tag, function(j) {
-    subtrace = readRDS(file = paste0(wd, paste0("/results/CDiff", "_", j, "_", Condition, "_", Exper),"/subtrace_" , j, Condition, ".RDs"))
+    subtrace = readRDS(file = paste0(wd, paste0("/results/CDiff", "_", j, "_", Condition, "_", Exper),"/subtrace_" , j, Condition, ".rds"))
     cbind(subtrace, Scenario = rep(j, length(subtrace$Time)))
   }))
-  
-  subflux <- do.call(rbind, lapply(tag, function(j) {
-    subflux = readRDS(file = paste0(wd, paste0("/results/CDiff", "_", j, "_", Condition, "_", Exper),"/subflux_" , j, Condition, ".RDs"))
-    cbind(subflux, Scenario = rep(j, length(subflux$Time)))
-  }))
-  
   
   lineCon = data.frame(Therapy = "solid", NoDrug = "dashed")
   
@@ -62,10 +56,10 @@ plotting_Fig2_paper = function(Exper,
                  "Heme intracellular concentration",
                  "Heme intracellular metabolism",
                  "Heme extracellular concentration"),
-    scale_x_min = c(0, 3e+05, 0, 0, 0, -0.0015, NA),
-    scale_x_max = c(8e+08, 4.75e+05, 0.02, 0.15, 16, 0, NA),
+    scale_x_min = c(0, 0, 0, 0, 0, -0.0015, NA),
+    scale_x_max = c(8e+08, 4.75e+05, 0.02, 0.15, 50, 0, NA),
     scale_y_min = c(0, NA, 0, 0, 0, -0.0013, NA),
-    scale_y_max = c(1.1e+09, NA, 0.025, 0.2, 50, 0, NA),
+    scale_y_max = c(1.1e+09, NA, 0.15, 1, 150, 0, NA),
     colo_l = c("#373332ff", "#373332ff", "#373332ff", "#373332ff", "#373332ff", "#373332ff", "#373332ff"),
     colo_m = c("#d09565ff", "#ff80e3ff", "#d09565ff", "#d09565ff", "#d09565ff", "#89ca66b6",  "#d09565ff"),
     colo_h = c("gold", "gold", "#ff8978ff", "#ff8978ff", "gold", "gold", "#ff8978ff"),
@@ -94,11 +88,7 @@ plotting_Fig2_paper = function(Exper,
       dplyr::mutate(Time = as.character(Time)) %>%
       ggplot(aes(x = Marking*row$unit, y = as.numeric(Time), group = Time)) +
       theme_minimal() +
-      labs(y = "Time (h)", 
-           x = row$y_label,
-           #subtitle = row$subtitle,
-           #title = paste(nameTag[, j], " Experiments", sep = "")
-           ) +
+      labs(y = "Time (h)", x = row$y_label) +
       theme(plot.title = element_text(size = 10, face = "bold", color = coloTag[, j]),
             plot.subtitle = element_text(size = 10, face = "bold", color = "#2a475e"),
             plot.title.position = "plot", 
@@ -108,17 +98,12 @@ plotting_Fig2_paper = function(Exper,
             legend.position = "bottom") + 
       geom_jitter(aes(col = IECsDeath), alpha = 0.7, size = 1) +
       geom_violin(scale = "width", alpha = 0.5, width = 2.5) +
-      scale_x_continuous(limits = c(row$scale_x_min, row$scale_x_max)) +
       scale_colour_gradientn(colors = c(row$colo_l, row$colo_m, row$colo_h), oob = scales::squish)
     
     p2 <- dplyr::filter(df, Scenario == j) %>%
       ggplot(aes(x = Time, y = Marking*row$unit, color = IECsDeath)) + 
       theme_minimal() +
-      labs(x = "Time (h)", 
-           y = row$y_label,
-           #subtitle = row$subtitle,
-           #title = paste(nameTag[, j], " Experiments", sep = "")
-           ) + 
+      labs(x = "Time (h)", y = row$y_label) + 
       theme(plot.title = element_text(size = 10, face = "bold", color = coloTag[, j]),
             plot.subtitle = element_text(size = 10, face = "bold", color = "#2a475e"),
             plot.title.position = "plot", 
@@ -127,10 +112,8 @@ plotting_Fig2_paper = function(Exper,
             legend.key.size = unit(0.4, "cm"),
             legend.position = "bottom") + 
       geom_line(aes(group = config), alpha = 0.65) +
-      scale_colour_gradientn(colors = c(row$colo_l, row$colo_m, row$colo_h), oob = scales::squish) +
-      scale_y_continuous(limits = c(row$scale_y_min, row$scale_y_max))
+      scale_colour_gradientn(colors = c(row$colo_l, row$colo_m, row$colo_h), oob = scales::squish)
     
-    #combined_plot <- (p1 + p2 + plot_layout(ncol = 2))
     return(list(p1,p2))
   }
   
@@ -155,12 +138,8 @@ plotting_Fig2_paper = function(Exper,
     ) 
   )+ plot_layout(nrow = 3,guides = "collect")&theme(legend.position = "bottom")
   
-  
-  ####### fig2B
-  # Define your col_settings
   col_settings = c("darkred", "#5351A2")
   
-  # Define the plotting function
   generate_plots <- function(variable, unit, y_label, subtitle, scale_y_min, scale_y_max) {
     
     df <- subtrace %>%
@@ -179,9 +158,7 @@ plotting_Fig2_paper = function(Exper,
             plot.title.position = "plot",
             axis.text = element_text(size = 12, color = "black"),
             axis.title = element_text(size = 12, face = "bold")) +
-      scale_colour_manual(values = col_settings) +
-      scale_y_continuous(limits = c(scale_y_min, scale_y_max))
-    
+      scale_colour_manual(values = col_settings)
     
     p2 <- ggplot(df, aes(x = Time, y = Marking * unit, color = Scenario, linetype = Scenario)) +
       geom_line(aes(group = interaction(config, Scenario)), alpha = 0.0055) + 
@@ -194,8 +171,7 @@ plotting_Fig2_paper = function(Exper,
             plot.title.position = "plot", 
             axis.text = element_text(size = 12, color = "black"),
             axis.title = element_text(size = 12, face = "bold")) +
-      scale_colour_manual(values = col_settings) +
-      scale_y_continuous(limits = c(scale_y_min, scale_y_max))
+      scale_colour_manual(values = col_settings)
     
     p3 <- ggplot(df, aes(x = Time, y = Marking * unit, group = Scenario, colour = Scenario)) +
       stat_summary(fun = median, geom = "line") +
@@ -207,8 +183,7 @@ plotting_Fig2_paper = function(Exper,
             plot.title.position = "plot", 
             axis.text = element_text(size = 12, color = "black"),
             axis.title = element_text(size = 12, face = "bold")) +
-      scale_colour_manual(values = col_settings) +
-      scale_y_continuous(limits = c(scale_y_min, scale_y_max))
+      scale_colour_manual(values = col_settings)
     
     pp3 <- ggplot_build(p3)
     
@@ -236,8 +211,7 @@ plotting_Fig2_paper = function(Exper,
             axis.text = element_text(size = 12, color = "black"),
             axis.title = element_text(size = 12, face = "bold")) +
       scale_colour_manual(values = col_settings) +
-      scale_fill_manual(values = col_settings) +
-      scale_y_continuous(limits = c(scale_y_min, scale_y_max))
+      scale_fill_manual(values = col_settings)
     
     g3 <- ggplot(df2) +
       geom_line(aes(x = x, y = abs(ydiff), colour = side)) +
@@ -253,14 +227,7 @@ plotting_Fig2_paper = function(Exper,
             axis.text = element_text(size = 12, color = "black"),
             axis.title = element_text(size = 12, face = "bold")) +
       scale_colour_manual(values = col_settings) +
-      scale_fill_manual(values = col_settings) +
-      scale_y_continuous(limits = c(scale_y_min, scale_y_max))
-    
-    # combined_plot <- (p1 + p2 + p3 + g2 + g3 + plot_layout(ncol = 5))
-    # 
-    # ggsave(combined_plot, 
-    #        file = paste0(wd, "/fig_3/", variable, "_diff.pdf"), 
-    #        width = 22.5, height = 3, limitsize = FALSE)
+      scale_fill_manual(values = col_settings)
     
     return(list(p1 = p1, p2 = p2, p3 = p3))
     
@@ -298,7 +265,6 @@ plotting_Fig2_paper = function(Exper,
                      p1_list$IECs + p2_list$IECs + 
                      p1_list$pheme_c + p2_list$pheme_c  + 
                      plot_layout(ncol = 2))
-  
   
   return(list(pl2B=pl2B,pl2C=pl2C))
 }

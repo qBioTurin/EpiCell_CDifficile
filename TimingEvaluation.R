@@ -1,3 +1,4 @@
+
 library(dplyr)
 library(ggplot2)
 library(patchwork)
@@ -5,7 +6,7 @@ library(epimod)
 library(grid)
 library(gtable)
 library(stringr)
-library("ggplotify")
+library(ggplotify)
 
 changecolorsFacet = function(pt,colors){
   # Convert the plot to a gtable object
@@ -33,6 +34,7 @@ changecolorsFacet = function(pt,colors){
   return(as.ggplot(g))
   
 }
+
 ModelAnalysisPlot=function(TracesPath, FluxPath, FluxVec,new_eps_value,config,tag) {
   
   trace = read.table(TracesPath, header = T)
@@ -71,34 +73,7 @@ ModelAnalysisPlot=function(TracesPath, FluxPath, FluxVec,new_eps_value,config,ta
   
   return(list(subflux = subflux,subtrace = subtrace))
 }
-update_eps_value <- function(file_path, new_eps_value) {
-  # Read the file into a vector of lines
-  lines <- readLines(file_path)
-  
-  # Find the line containing "eps;"
-  eps_line_index <- grep("^g;\\s*eps;", lines)
-  
-  # Check if the eps line exists
-  if (length(eps_line_index) == 0) {
-    stop("No line with 'eps' found in the file.")
-  }
-  
-  # Extract the specific line
-  eps_line <- lines[eps_line_index]
-  
-  # Modify the last value after the last semicolon
-  modified_eps_line <- sub("(g;\\s*eps;.*?).*", paste0("\\1 ", new_eps_value), eps_line)
-  
-  # Update the line in the lines vector
-  lines[eps_line_index] <- modified_eps_line
-  
-  # Optionally, write the modified lines back to the file
-  writeLines(lines, file_path)
-  
-  # Return the modified content as a vector of lines
-  return(lines)
-}
-# Function to set working directory to the closest folder with a specific name
+
 set_closest_directory <- function(target_name) {
   wd = getwd()
   if( basename(wd) != target_name){
@@ -122,6 +97,7 @@ set_closest_directory <- function(target_name) {
   # Return the new working directory
   return(getwd())
 }
+
 wd <- set_closest_directory("EpiCell_CDifficile")
 setwd(wd)
 
@@ -141,113 +117,250 @@ rtol = 1e-06
 time.step = 1
 f_time = 72
 event_times = c(8, 16, 24, 32, 40, 48)
+
 distance_measure = "ReferenceM"
 parameters_fname <- "input/csv/ParametersListSinkHeme_eps.csv"
 supp_function.dir = "/code/supplementary_functions/"
 
-######################
+# Parameters closest to the median trances in FIG2B ####
 
+source("./code/supplementary_functions/MedianParamsConfiguration.R")
 
-#### parameters closest to the median trances in FIG2B ####
-source("~/EpiCell_CDifficile/code/supplementary_functions/MedianParamsConfiguration.R")
+resParams = configuration.closeMedian(Condition = "Therapy", 
+                                      tag = "Unified",
+                                      subtrace = NULL)
 
-resParams = configuration.closeMedian(Condition = "Therapy",
-                                      tag = c( "Unified"))
+plot_config = resParams$plot
+plot_config
 
-resParams$plot
+saveRDS(resParams, file = "paramsProve.rds")
 
-saveRDS(resParams,file = "paramsProve.RDs") ## Da caricare se non si ha la sensitivity
+#####
+
+resParams = readRDS("./paramsProve.rds")
+
+epstimes = c("1e-6","1e-4","1e-2")
+numbConfig = 1:dim(resParams$Config)[1]
+paramsConfig = resParams$Config
+
+paramsgrid = rbind(
+  expand.grid("1e-6", numbConfig, "Ablated"), 
+  expand.grid("1e-6", numbConfig, "ParAblated"),
+  expand.grid(epstimes, numbConfig, "Unified"))
+
+update_parameters <- function(parameters_fname, new_eps_value) {
+  
+  lines <- readLines(parameters_fname)
+  
+  # Update epsilon
+  eps_line_index <- grep("^g;\\s*eps;", lines)
+  eps_line <- lines[eps_line_index]
+  modified_eps_line <- sub("(g;\\s*eps;.*?).*", paste0("\\1 ", new_eps_value), eps_line)
+  lines[eps_line_index] <- modified_eps_line
+  
+  # Update Detox
+  Detox_index <- grep("Detox", lines)
+  Detox_line = lines[Detox_index]
+  new_Detox = as.numeric(paramsConfig[nconfig, c("Detox", "Death4Treat", "IECsDeath")])[1]
+  modified_Detox_line = sub("(c;\\s*Detox;.*?).*", paste0("\\1 ", new_Detox), Detox_line)
+  lines[Detox_index] <- modified_Detox_line
+  
+  # Update Death4Treat
+  Death4Treat_index <- grep("Death4Treat", lines)
+  Death4Treat_line = lines[Death4Treat_index]
+  new_Death4Treat = as.numeric(paramsConfig[nconfig, c("Detox", "Death4Treat", "IECsDeath")])[2]
+  modified_Death4Treat_line = sub("(c;\\s*Death4Treat;.*?).*", paste0("\\1 ", new_Death4Treat), Death4Treat_line)
+  lines[Death4Treat_index] <- modified_Death4Treat_line
+  
+  # Update IECsDeath
+  IECsDeath_index <- grep("IECsDeath", lines)
+  IECsDeath_line = lines[IECsDeath_index]
+  new_IECsDeath = as.numeric(paramsConfig[nconfig, c("Detox", "Death4Treat", "IECsDeath")])[3]
+  modified_IECsDeath_line = sub("(c;\\s*IECsDeath;.*?).*", paste0("\\1 ", new_IECsDeath), IECsDeath_line)
+  lines[IECsDeath_index] <- modified_IECsDeath_line
+  
+  # Write the updated lines back to the file
+  writeLines(lines, parameters_fname)
+  
+  return(lines)
+}
+
+MultipleAnalysis = lapply(seq_along(paramsgrid[, 1]),
+                          
+                          function(c, paramsConfig, paramsgrid) {
+                            
+                            new_eps_value = paramsgrid[c, "Var1"]
+                            nconfig = paramsgrid[c, "Var2"]
+                            tag = paramsgrid[c, "Var3"]
+                            
+                            # Debug print 1: Print current configuration
+                            cat(sprintf("\n\n=== Running configuration %d ===\n", c))
+                            cat(sprintf("eps: %s, config: %d, tag: %s\n", new_eps_value, nconfig, tag))
+                            cat("Parameters being set:\n")
+                            print(paramsConfig[nconfig, c("Detox", "Death4Treat", "IECsDeath", "ConfParams")])
+                            
+                            # Store old parameter values for verification
+                            old_lines <- readLines(parameters_fname)
+                            
+                            updated_content = update_parameters(
+                              parameters_fname = parameters_fname, 
+                              new_eps_value = new_eps_value)
+                            
+                            # Debug print 2: Verify parameter updates
+                            new_lines <- readLines(parameters_fname)
+                            cat("\nParameter file changes:\n")
+                            cat("Old IECsDeath line:", old_lines[grep("IECsDeath", old_lines)], "\n")
+                            cat("New IECsDeath line:", new_lines[grep("IECsDeath", new_lines)], "\n")
+                            cat("Old Detox line:", old_lines[grep("Detox", old_lines)], "\n")
+                            cat("New Detox line:", new_lines[grep("Detox", new_lines)], "\n")
+                            cat("Old Death4Treat line:", old_lines[grep("Death4Treat", old_lines)], "\n")
+                            cat("New Death4Treat line:", new_lines[grep("Death4Treat", new_lines)], "\n")
+                            
+                            # model.generation(net_fname = paste0(wd, "/Net/", net_fname, ".PNPRO"),
+                            #                  transitions_fname = paste0(wd, "/Net/", tag, ".cpp"),
+                            #                  fba_fname = paste0(wd, "/input/CompiledModels/", fba_fname))
+                            # 
+                            # system(paste0("mv ", net_fname, ".* ./Net"))
+                            # 
+                            # execution_start <- Sys.time()
+                            # model.analysis(solver_fname = paste0(wd, "/Net/", net_fname, ".solver"),
+                            #                i_time = 0, 
+                            #                f_time = f_time, 
+                            #                s_time = time.step,
+                            #                fba_fname = paste0(wd, "/input/CompiledModels/", fba_fname),
+                            #                atol = atol,
+                            #                rtol = rtol, 
+                            #                debug = T,
+                            #                parameters_fname = paste0(wd, "/", parameters_fname),
+                            #                functions_fname = paste0(wd, supp_function.dir, "Functions.R"),
+                            #                event_times = if (Condition != "NoDrug") event_times,
+                            #                event_function = if (Condition != "NoDrug") "treat_generation")
+                            # execution_end <- Sys.time()
+                            # 
+                            # execution_time = as.numeric(difftime(execution_end, execution_start, units = "secs"))
+                            # 
+                            # lines <- readLines(list.files(path = wd, pattern = "\\.log$", full.names = TRUE))
+                            # file.remove(list.files(path = wd, pattern = "\\.log$", full.names = TRUE))
+                            # 
+                            # extracted_lines <- grep("Total memory used|Total time required", lines, value = TRUE)
+                            # 
+                            # times <- as.numeric(sub(".*Total time required: ([0-9]+)s.*", "\\1", extracted_lines[grepl("time required", extracted_lines)]))
+                            # memory <- as.numeric(sub(".*Total memory used: ([0-9]+)KB.*", "\\1", extracted_lines[grepl("memory used", extracted_lines)]))
+                            # 
+                            # result_df <- data.frame(Time_s = sum(times), 
+                            #                         Memory_KB = sum(memory),
+                            #                         GlobalExecution_time = execution_time, 
+                            #                         eps = new_eps_value,
+                            #                         params = paramsConfig[nconfig, "ConfParams"],
+                            #                         Scenario = tag)
+                            # 
+                            # resFolder = paste0("./results/TimingEval/CDiff", tag, Condition, new_eps_value, 
+                            #                    gsub(pattern = " ", replacement = "", x = paramsConfig[nconfig, "ConfParams"]), 
+                            #                    collapse  = "_")
+                            # 
+                            # if(dir.exists(resFolder)) system(paste("rm -r ", resFolder))
+                            # 
+                            # system(paste0("mv ", net_fname, "_analysis* ", resFolder))
+                            
+                            traces = ModelAnalysisPlot(
+                              paste0(resFolder,"/EpitCellDifficileHemeSink-analysis-1.trace"),
+                              paste0(resFolder,"/EpitCellDifficileHemeSink-analysis-1-0.flux"), 
+                              FluxVec = c("EX_biomass_e", "sink_pheme_c", "EX_cys_L_e", 
+                                          "EX_trp_L_e", "EX_ile_L_e", "EX_pro_L_e", "EX_leu_L_e", "EX_val_L_e"),
+                              new_eps_value,
+                              paramsConfig[nconfig, "ConfParams"],
+                              tag
+                            )
+                            
+                            debug_plot = ggplot(
+                              traces[["subtrace"]] %>% 
+                                filter(Places %in% c("IECs", "pheme_e", "BiomassCD", "CD", "pheme_c"))) +
+                              geom_line(aes(x = Time, y = Marking,
+                                            linetype = tag),
+                                        linewidth = 1) +
+                              facet_wrap(~Places, scales = "free_y") +
+                              labs(title = sprintf("Configuration %d: %s, eps=%s", 
+                                                   nconfig, 
+                                                   paramsConfig[nconfig, "ConfParams"],
+                                                   new_eps_value),
+                                   subtitle = sprintf("Detox=%.2e, Death4Treat=%.2e, IECsDeath=%.2e",
+                                                      paramsConfig[nconfig, "Detox"],
+                                                      paramsConfig[nconfig, "Death4Treat"],
+                                                      paramsConfig[nconfig, "IECsDeath"])) +
+                              theme_minimal() +
+                              theme(legend.position = "bottom")
+                            
+                            # Save the debug plot
+                            ggsave(filename = paste0(wd, "/results/", new_eps_value, "_",
+                                                     "_Set_", nconfig, "_", tag, "_debug_plot.pdf"), 
+                                   plot = debug_plot,
+                                   width = 12, height = 8)
+                            
+                            return(list(traces = traces, result_df = result_df))
+                          },
+                          paramsConfig = resParams$Config, paramsgrid
+)
+
+timing = do.call(rbind, lapply(MultipleAnalysis, "[[", 2))
+flux = do.call(rbind, lapply(lapply(MultipleAnalysis,"[[", 1),"[[", 1))
+trajectories = do.call(rbind, lapply(lapply(MultipleAnalysis, "[[",1), "[[", 2))
+trajectories$new_eps_value = factor(trajectories$new_eps_value, levels = epstimes)
+flux$new_eps_value = factor(flux$new_eps_value, levels = epstimes)
+trajectories$config = factor(trajectories$config, levels = paste0("Set ", numbConfig))
+flux$config = factor(flux$config, levels = paste0("Set ", numbConfig))
+trajectories$ConfParams = trajectories$config
+
+ggplot(trajectories %>% 
+         filter(Time < 15) %>%
+         filter(Places %in% 
+                  c("CD", "IECs", 
+                    "trp_L_e", "leu_L_e", 
+                    "pheme_c", "sink_pheme_c", "pheme_e"))) +
+  geom_line(aes(x = Time, y = Marking, linetype = tag, col = tag)) +
+  facet_wrap(Places~new_eps_value,scales = "free") +
+  theme_bw() +
+  theme(
+    plot.subtitle = element_text(size = 10, face = "bold", color = "#2a475e"),
+    plot.title.position = "plot", 
+    axis.text = element_text(size = 9, color = "black"),
+    axis.title = element_text(size = 15, face = "bold"),
+    legend.key.size = unit(0.4, "cm"),
+    strip.text.x = element_text(size = 10, face = "bold", colour = "white"),
+    strip.text.y = element_text(size = 10, face = "bold", colour = "black"),
+    strip.background.y = element_rect( fill = "white"),
+    legend.position = "top") +
+  labs(x = "Time (h)", y = "Quantity", linetype = "tag") +
+  geom_vline(xintercept = 8)
+
 ############
 
-# epstimes = c("1e-6","1e-4","1e-2")
-# numbConfig = 1:dim(resParams$Config)[1]
-# tag = c("Ablated", "Unified")
-# paramsgrid = rbind(expand.grid("1e-6",numbConfig,"Ablated"), expand.grid(epstimes,numbConfig,"Unified"))
+# Define color mappings for facets
+colors_new_confParams <- c("#3B9AB2", "#89ca66b6", "#972D15")
+names(colors_new_confParams) <- unique(trajectories$ConfParams)
 
-tag = c("Ablated", "Unified", "ParAblated")
-paramsgrid = expand.grid("1e-6",1,tag)
+colors_new_eps_value <- rev(grey.colors(5))
+names(colors_new_eps_value) <- unique(trajectories$new_eps_value)
 
-MultipleAnalysis = lapply(seq_along(paramsgrid[,1]),
-                          function(c,paramsConfig,paramsgrid){
-                            new_eps_value = paramsgrid[c,"Var1"]
-                            nconfig = paramsgrid[c,"Var2"]
-                            tag = paramsgrid[c,"Var3"]
-                            updated_content = update_eps_value(parameters_fname, new_eps_value = new_eps_value)
-                            
-                            # Print updated content
-                            cat(updated_content, sep = "\n")
-                            
-                            ######## Model creation
-                            transitions_fname = paste0(wd, "/Net/",tag,".cpp")
-                            
-                            model.generation(net_fname = paste0(wd, "/Net/", net_fname, ".PNPRO"),
-                                             transitions_fname = transitions_fname,
-                                             fba_fname = paste0(wd, "/input/CompiledModels/", fba_fname))
-                            
-                            system(paste0("mv ", net_fname, ".* ./Net"))
-                            ######################
-                            
-                            execution_start <- Sys.time()
-                            model.analysis(solver_fname = paste0(wd, "/Net/", net_fname, ".solver"),
-                                           i_time = 0, f_time = f_time, s_time = time.step,
-                                           fba_fname = paste0(wd, "/input/CompiledModels/", fba_fname),
-                                           atol = atol, rtol = rtol, debug = T,
-                                           ini_v = as.numeric(paramsConfig[nconfig,c("Detox","Death4Treat","IECsDeath")]),
-                                           parameters_fname = paste0(wd, "/", parameters_fname),
-                                           functions_fname = paste0(wd, supp_function.dir, "Functions.R"),
-                                           event_times = if (Condition != "NoDrug") event_times,
-                                           event_function = if (Condition != "NoDrug") "treat_generation")
-                            execution_end <- Sys.time()
-                            
-                            execution_time = as.numeric(difftime(execution_end, execution_start, units = "secs"))
-                            
-                            # Read the file
-                            file_path <- list.files(path = wd, pattern = "\\.log$", full.names = TRUE)
-                            lines <- readLines(file_path)
-                            file.remove(file_path)
-                            # Filter lines containing "Total memory used" or "Total time required"
-                            extracted_lines <- grep("Total memory used|Total time required", lines, value = TRUE)
-                            
-                            # Extract time and memory separately
-                            times <- as.numeric(sub(".*Total time required: ([0-9]+)s.*", "\\1", extracted_lines[grepl("time required", extracted_lines)]))
-                            memory <- as.numeric(sub(".*Total memory used: ([0-9]+)KB.*", "\\1", extracted_lines[grepl("memory used", extracted_lines)]))
-                            
-                            # Create a data frame
-                            result_df <- data.frame(Time_s = sum(times), Memory_KB = sum(memory),
-                                                    GlobalExecution_time = execution_time, eps = new_eps_value,
-                                                    params = paramsConfig[nconfig,"ConfParams"], Scenario = tag)
-                            
-                            resFolder = paste0("./results/TimingEval/CDiff", tag, Condition,
-                                               new_eps_value, gsub(pattern = " ",replacement = "",x = paramsConfig[nconfig,"ConfParams"]), collapse  = "_")
-                            
-                            if(dir.exists(resFolder)) system(paste("rm -r ",resFolder))
-                            system(paste0("mv ", net_fname, "_analysis* ",resFolder))
-                            
-                            traces = ModelAnalysisPlot(paste0(resFolder,"/EpitCellDifficileHemeSink-analysis-1.trace"),
-                                                       paste0(resFolder,"/EpitCellDifficileHemeSink-analysis-1-0.flux"), 
-                                                       FluxVec = c(
-                                                         "EX_biomass_e", "sink_pheme_c", "EX_cys_L_e", 
-                                                         "EX_trp_L_e", "EX_ile_L_e", "EX_pro_L_e", "EX_leu_L_e", "EX_val_L_e"),
-                                                       new_eps_value,
-                                                       paramsConfig[nconfig,"ConfParams"],
-                                                       tag
-                            )
-                            return(list(traces = traces, timing = result_df))
-                          },paramsConfig = resParams$Config,paramsgrid)
+source("./code/plot_functions/Fig2_plot.R")
+Fig2 = plotting_Fig2_paper(Exper = "Model_Sensitivity",
+                           Condition = "Therapy",
+                           tag = c("Ablated", "ParAblated", "Unified"),
+                           param_target = "IECsDeath",
+                           Tempi = c(0, 12, 24, 36, 48, 60),
+                           wd = wd,
+                           trajectories = trajectories,
+                           colConfigSets = colors_new_confParams)
 
+Fig2$pl2B
+Fig2$pl2C
 
-timing = do.call(rbind, lapply(MultipleAnalysis,"[[",2) )
-flux = do.call(rbind, lapply(lapply(MultipleAnalysis,"[[",1),"[[",1) )
-subtrace = do.call(rbind, lapply(lapply(MultipleAnalysis,"[[",1),"[[",2) )
-subtrace$new_eps_value = factor(subtrace$new_eps_value,levels = epstimes)
-flux$new_eps_value = factor(flux$new_eps_value,levels = epstimes)
-#subtrace$config = factor(subtrace$config, levels = numbConfig)
-#flux$config = factor(flux$config, levels = numbConfig)
-subtrace$ConfParams = subtrace$config
+# ggsave(plot = Fig2$pl2B,filename = "Figures/Fig2B.pdf",width = 8,height = 10)
+# ggsave(plot = Fig2$pl2C,filename = "Figures/Fig2C.pdf",width = 15,height = 4.5)
 
-ggplot( subtrace )+
-  geom_line(aes(x = Time, y = Marking, linetype = tag, col = tag ))+
-  facet_wrap(Places~new_eps_value,scales = "free")+
+pt = ggplot(trace%>%filter(Places %in% c("CD","IECs","BiomassCD")))+
+  geom_line(aes(x = Time, y = Marking, linetype = tag,  col = ConfParams ))+
+  facet_grid(Places~new_eps_value,scales = "free")+
+  scale_color_manual(values = colors_new_confParams[unique(trace$ConfParams)],guide="none")+
   theme_bw()+
   theme(
     plot.subtitle = element_text(size = 10, face = "bold", color = "#2a475e"),
@@ -261,69 +374,21 @@ ggplot( subtrace )+
     legend.position = "top")+
   labs(x = "Time (h)",y = "Quantity", linetype = "Scenario")
 
-
-
-saveRDS(list(trace = subtrace,flux = flux, timing = timing),file = "tracesFluxes.RDs")
-tracesFluxes <- readRDS(paste0(wd,"/tracesFluxes.RDs"))
-trace= tracesFluxes$trace
-flux= tracesFluxes$flux
-
-# Define color mappings for facets
-
-colors_new_confParams <- c("#3B9AB2", "#89ca66b6", "#972D15")
-names(colors_new_confParams) <- unique(trace$ConfParams)
-
-colors_new_eps_value <- rev(grey.colors(5))#c("#F21A00", "#3B9AB2" , "#D8A499", "#EBCC2A" ,"#C6CDF7")
-names(colors_new_eps_value) <- unique(trace$new_eps_value)
-
-source("~/EpiCell_CDifficile/code/plot_functions/Fig2_plot.R")
-Fig2 = plotting_Fig2_paper(Exper = "Model_Sensitivity",
-                    Condition = "Therapy",
-                    tag = c("Ablated", "Unified"),
-                    param_target = "IECsDeath",
-                    Tempi = c(0, 12, 24, 36, 48, 60),
-                    wd = wd,
-                    subtrace = trace,
-                    colConfigSets = colors_new_confParams)
-
-ggsave(plot = Fig2$pl2B,filename = "Figures/Fig2B.pdf",width = 8,height = 10)
-ggsave(plot = Fig2$pl2C,filename = "Figures/Fig2C.pdf",width = 15,height = 4.5)
-
-
-
-pt = ggplot(trace%>%filter(Places %in% c("CD","IECs","BiomassCD")))+
-  geom_line(aes(x = Time, y = Marking, linetype = tag, col = ConfParams ))+
-  facet_grid(Places~new_eps_value,scales = "free")+
-  scale_color_manual(values = colors_new_confParams[unique(trace$ConfParams)],guide="none")+
-  theme_bw()+
-  theme(
-        plot.subtitle = element_text(size = 10, face = "bold", color = "#2a475e"),
-        plot.title.position = "plot", 
-        axis.text = element_text(size = 9, color = "black"),
-        axis.title = element_text(size = 15, face = "bold"),
-        legend.key.size = unit(0.4, "cm"),
-        strip.text.x = element_text(size = 10, face = "bold", colour = "white"),
-        strip.text.y = element_text(size = 10, face = "bold", colour = "black"),
-        strip.background.y = element_rect( fill = "white"),
-        legend.position = "top")+
-  labs(x = "Time (h)",y = "Quantity", linetype = "Scenario")
-
 g = changecolorsFacet(pt,colors_new_eps_value)
 g
 
 # Calculate percentage difference
 
 df_diff <- trace %>%
-  filter(Places %in% c("CD","IECs","BiomassCD"),tag!="ParAblated") %>%
+  filter(Places %in% c("CD","IECs","BiomassCD"),Scenario!="ParAblated") %>%
   mutate(new_eps_value = as.character(new_eps_value) ) %>% 
   mutate(new_eps_value = str_replace(new_eps_value, "1e-6", "baseline")) %>%
-  group_by(Time,tag,config) %>%
+  group_by(Time, Scenario, config) %>%
   tidyr::spread(key = new_eps_value, value = Marking) %>%
-  tidyr::gather(-Time,-Places,-baseline,-config, -tag,-ConfParams, key = "new_eps_value", value = "Marking") %>%
+  tidyr::gather(-Time,-Places,-baseline,-config, -Scenario,-ConfParams, key = "new_eps_value", value = "Marking") %>%
   mutate(
     perc_diff = 100 * (Marking - baseline) / baseline        # % Difference
   )
-
 
 pt_perc = ggplot(df_diff %>% filter(tag == "Unified"))+
   geom_bar(aes(x = as.factor(Time), y = perc_diff, group = tag, fill = new_eps_value),
@@ -332,15 +397,15 @@ pt_perc = ggplot(df_diff %>% filter(tag == "Unified"))+
   theme_bw()+
   scale_fill_manual(values = colors_new_eps_value[unique(df_diff$new_eps_value)])+
   theme(
-        plot.subtitle = element_text(size = 10, face = "bold", color = "#2a475e"),
-        plot.title.position = "plot", 
-        axis.text = element_text(size = 9, color = "black"),
-        axis.title = element_text(size = 15, face = "bold"),
-        legend.key.size = unit(0.4, "cm"),
-        strip.text.x = element_text(size = 10, face = "bold", colour = "white"),
-        strip.text.y = element_text(size = 10, face = "bold", colour = "black"),
-        strip.background.y = element_rect( fill = "white"),
-        legend.position = "none")+
+    plot.subtitle = element_text(size = 10, face = "bold", color = "#2a475e"),
+    plot.title.position = "plot", 
+    axis.text = element_text(size = 9, color = "black"),
+    axis.title = element_text(size = 15, face = "bold"),
+    legend.key.size = unit(0.4, "cm"),
+    strip.text.x = element_text(size = 10, face = "bold", colour = "white"),
+    strip.text.y = element_text(size = 10, face = "bold", colour = "black"),
+    strip.background.y = element_rect( fill = "white"),
+    legend.position = "none")+
   labs(x = "Time (h)",y = "% difference with 1e-6")+ 
   scale_x_discrete(breaks = seq(0,max(df_diff$Time),20))
 
@@ -388,5 +453,4 @@ p <- ggplot(timing, aes(x = eps ,group = ID) ) +
   labs(x = "Epsilon (eps)", color = "Variable")
 
 (pf|pt)/p+ plot_layout(heights  = c(2, 1),guides = 'collect')
-
 

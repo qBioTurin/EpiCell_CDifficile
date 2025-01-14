@@ -274,15 +274,8 @@ Exe.exp = function(model_cat,
         return(subflux)
       })
     }
-    saveRDS(subtrace, file = paste0(resfolder,"/subtrace_" , tag, Condition, ".RDs"))
-    saveRDS(subflux, file = paste0(resfolder,"/subflux_" , tag, Condition, ".RDs"))
-    
-    
-    # Sensitivity.plot(n_config,tag,Condition,Exper,net_fname,param_target,multi_param,wd)
-    # 
-    # setwd(paste0(wd))
-    # 
-    # SensitivityViolin.plot(tag,Condition,Exper,net_fname,param_target,multi_param,wd)
+    saveRDS(subtrace, file = paste0(resfolder,"/subtrace_" , tag, Condition, ".rds"))
+    saveRDS(subflux, file = paste0(resfolder,"/subflux_" , tag, Condition, ".rds"))
       
   }
   

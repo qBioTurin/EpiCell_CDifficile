@@ -10,7 +10,8 @@ set_closest_directory <- function(target_name) {
     
     # Check if there are matches
     if (length(matching_dirs) == 0) {
-      stop("No folder with the name '", target_name, "' found in the current working directory or its subdirectories.")
+      stop("No folder with the name '", target_name, 
+           "' found in the current working directory or its subdirectories.")
     }
     
     # Find the directory with the shortest path (closest to the current working directory)
@@ -22,6 +23,7 @@ set_closest_directory <- function(target_name) {
   # Return the new working directory
   return(getwd())
 }
+
 wd <- set_closest_directory("EpiCell_CDifficile")
 # loading library
 
@@ -79,6 +81,7 @@ if(!file.exists(model_R.file)) {
                lb_manual = c(rep(-1e-14, 6), pheme.lb, -1e-14),
                gene.exp = F, gene.exp_sample = 1, wd = wd) 
 }
+
 if(!file.exists(paste0(wd, "/input/csv/react_index.txt"))){
   all.react = readRDS(paste0(wd, "/input/", model.type, "/", model.name, "/all.react_diet.rds"))
   all.react = all.react[[1]]
@@ -96,12 +99,13 @@ if(!file.exists(paste0(wd, "/input/csv/react_index.txt"))){
 system("rm -f dockerID *error.log *.log ExitStatusFile")
 
 startTime = Sys.time()
+
 for (ablation in c("Unified", "ParAblated", "Ablated")) {
   Exe.exp(model_cat = model.name,
           model_name = model.name,
           fba_fname = paste0(model.name, ".txt"),
           atol = 1e-06, rtol = 1e-06,
-          time.step = 1, f_time = 72,
+          time.step = 0.1, f_time = 72,
           event_times = c(8, 16, 24, 32, 40, 48),
           distance_measure = "ReferenceM",
           reference_data = paste0(wd, "/input/csv/ReferenceRanking.csv"),
@@ -120,6 +124,7 @@ for (ablation in c("Unified", "ParAblated", "Ablated")) {
           wd = wd,
           supp_function.dir = supp_function.dir)
 }
+
 endTime = Sys.time()
 
 ##### plot FIG.2 B and C - Main paper ##### 
@@ -137,13 +142,13 @@ pl = plotting_Fig2_paper(Exper = "Model_Sensitivity",
 pl$pl2C
 pl$pl2B
 
-ggsave(plot = pl$pl2C,filename = "Fig2C.pdf",path = "Figures/",width = 14,height = 10)
-ggsave(plot = pl$pl2B,filename = "Fig2B.pdf",path = "Figures/",width = 10,height = 14)
-
+# ggsave(plot = pl$pl2C,filename = "Fig2C.pdf",path = "Figures/",width = 14,height = 10)
+# ggsave(plot = pl$pl2B,filename = "Fig2B.pdf",path = "Figures/",width = 10,height = 14)
 
 ##### Extrapolate configID for the model analysis ##### 
 ##### considering the unified scenario from the sensitivity analysis
-source("~/EpiCell_CDifficile/code/supplementary_functions/ConfigID_generation.R")
+
+source(paste0(wd, "/code/supplementary_functions/ConfigID_generation.R"))
 ListID = csvFileUpdating.minRankConfigID(wd, net_fname = "EpitCellDifficileHemeSink")
 
 ###### Run model Analysis with the new config ID ########
@@ -152,6 +157,7 @@ system("rm -f dockerID *error.log *.log ExitStatusFile")
 
 ablation_types <- c("Unified", "ParAblated")
 therapy_types <- c("NoDrug", "Therapy")
+
 source(paste0(wd,"/code/supplementary_functions/write_tracefluxesbounds.R") )
 
 for (ablation in ablation_types) {
@@ -177,21 +183,76 @@ for (ablation in ablation_types) {
             replicates = 1,
             param_target = "IECsDeath",
             net_fname = "EpitCellDifficileHemeSink",
-            cores = detectCores()-2,
+            cores = detectCores(),
             wd = wd,
             supp_function.dir = supp_function.dir)
   }
 }
 
-
 ##### plot Fig S4 ##### 
 
-source( paste0(wd,"/code/plot_functions/FigS4_plot.R") )
+source(paste0(wd,"/code/plot_functions/FigS4_plot.R"))
 
 pltFigS4 = PlottingFigS4(Exper = "Model_Analysis", 
               colConNoDrug = "darkred", colConTherapy = "darkcyan", coltag = "darkgray",
               tag = c("ParAblated", "Unified"),
               Condition = c("NoDrug", "Therapy"),
               wd = wd)
-ggsave(plot = pltFigS4,filename = "FigS4.pdf",path = "Figures/",width = 14,height = 12)
 
+pltFigS4
+
+# ggsave(plot = pltFigS4,filename = "FigS4.pdf",path = "Figures/",width = 14,height = 12)
+
+#### plotting biomass
+
+Exper = "Model_Sensitivity"
+Condition = "Therapy"
+tag = c("Ablated", "ParAblated", "Unified")
+param_target = "IECsDeath"
+Tempi = c(0, 12, 24, 36, 48, 60)
+colo1 = c("black", "magenta", "gold")
+colo2 = c("black", "#266867", "yellow")
+colo3 = c("#ffd166", "#ee6c4d", "#293241")
+
+Na = 6.022e20
+c = 6.022e08
+pack = 1*(Na*(1/c))
+fc = 1e-06
+
+coloTag = data.frame(Ablated = "darkred", ParAblated = "#EC6D67", Unified = "#5351A2")
+nameTag = data.frame(Ablated = "Ablated", ParAblated = "Partially Ablated", Unified = "Unified")
+
+col_settings = c("darkred", "#EC6D67", "#5351A2")
+
+aa_places <- c("trp_L_e", "pro_L_e", "val_L_e", "ile_L_e", "cys_L_e", "leu_L_e")
+places <- c("CD", "IECs", "BiomassCD", "Drug", "pheme_e", "pheme_c", aa_places)
+units = c(rep("(cell)", 2), "(pg)", rep("(µmol)", 9))
+
+subtrace <- do.call(rbind, lapply(tag, function(j) {
+  subtrace = readRDS(
+    file = paste0(wd, paste0("/results/CDiff", "_", j, "_", Condition, "_", Exper),"/subtrace_" , j, Condition, ".rds"))
+  cbind(subtrace, Scenario = rep(j, length(subtrace$Time)))
+}))
+
+subtrace %>%
+  dplyr::filter(Places == "BiomassCD") %>%
+  dplyr::select(-c("Death4Treat", "Detox")) %>%
+  dplyr::mutate(Time = as.numeric(Time))
+
+df <- subtrace %>%
+  dplyr::filter(Places == "BiomassCD") %>%
+  dplyr::select(-c("Death4Treat", "Detox")) %>%
+  dplyr::mutate(Time = as.numeric(Time))
+
+p_bio = ggplot(df, aes(x = Time, y = Marking, color = Scenario)) +
+  geom_line(aes(group = interaction(config, Scenario)), alpha = 0.08) +
+  theme_minimal() +
+  theme(legend.position = "right",
+        plot.title = element_text(size = 9, face = "bold", color = "black"),
+        plot.subtitle = element_text(size = 9, face = "bold", color = "#2a475e"),
+        plot.title.position = "plot",
+        axis.text = element_text(size = 12, color = "black"),
+        axis.title = element_text(size = 12, face = "bold")) +
+  scale_colour_manual(values = col_settings)
+
+p_bio

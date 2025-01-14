@@ -14,11 +14,11 @@ g; RCD; 0.21
 g; P; 1
 g; tB; 1e-06
 g; EX_B_starv; 0.015
-c; IECsDeath; 1.87417344935238e-11
+c; Detox; 0.000201112934458069
 c; Treat; 0
 c; HemeEfflux; 0.85
-g; Death4Treat; 9.16641906029545e-11
-c; Detox; 0.000188552537723444
+g; Death4Treat; 3.22025732370093e-10
+c; IECsDeath; 3.83601492969319e-09
 g; Efflux; EvalEfflux; MDET = 1.5e-10; unit = "pmol"
 c; HEMEti1; EvalVmax; V = 3.1; gamma = 1e-03; k = 0.05
 c; HEMEti2; EvalVmax; V = 3.1; gamma = 1e-03; k = 0.95
