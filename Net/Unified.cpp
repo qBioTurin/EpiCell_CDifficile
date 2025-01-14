@@ -214,7 +214,7 @@ double FBA(double *Value,
   if(Flag == -1) init_data_structures(Trans, NumTrans);
   
   double nBac = trunc(Value[NumPlaces.find("CD") -> second], decimalTrunc );
-
+  
   if (ValuePrev["BiomassCD"] != -1) {
     FlagPrev = 1;
   } else {
@@ -269,7 +269,7 @@ double FBA(double *Value,
       double Biom = trunc(Value[NumPlaces.find("BiomassCD") -> second], decimalTrunc );
       
       if(p -> first == "EX_biomass_e_in") {
-
+        
         if ((gDW_CDmax - Biom) > tB) {
           Ub = (gDW_CDmax - Biom);
         } else {
@@ -305,7 +305,7 @@ double FBA(double *Value,
           Lb = -( (Met*cNa)/(nBac*Biom*1e-12) );
         }
         //}
-      
+        
         Ub = 0.0;
         
       }
@@ -323,23 +323,23 @@ double FBA(double *Value,
     
     vec_fluxb[0].solve();
     Vars = vec_fluxb[0].getVariables();
-  
+    
     //double marking = 0;
     //double flux = 0;
     
-   // for(map <string, string>::iterator p = FBAmet.begin(); p != FBAmet.end(); ++p) {
-     //int indexFBA = vec_fluxb[0].fromNametoid(p -> second);
-      //flux = trunc(Vars.at(indexFBA), decimalTrunc );
-      
-      //int indexPN = NumPlaces.find(FBAplace.find(p -> first) -> second) -> second;
-      //marking = Value[indexPN];
-      
-      //if (marking == 0) {
-      //  Vars.at(indexFBA) = flux;
-      //} else {
-      //  Vars.at(indexFBA) = (flux/marking);
-      //}
-      //}
+    // for(map <string, string>::iterator p = FBAmet.begin(); p != FBAmet.end(); ++p) {
+    //int indexFBA = vec_fluxb[0].fromNametoid(p -> second);
+    //flux = trunc(Vars.at(indexFBA), decimalTrunc );
+    
+    //int indexPN = NumPlaces.find(FBAplace.find(p -> first) -> second) -> second;
+    //marking = Value[indexPN];
+    
+    //if (marking == 0) {
+    //  Vars.at(indexFBA) = flux;
+    //} else {
+    //  Vars.at(indexFBA) = (flux/marking);
+    //}
+    //}
     
     FBAtime = time;
     
@@ -361,24 +361,24 @@ double FBA(double *Value,
   double Biom = trunc(Value[NumPlaces.find("BiomassCD") -> second], decimalTrunc );
   double rate = trunc(Vars[index], decimalTrunc ) ;
   double r = 0;
-
+  
   if (str == "EX_biomass_e_in") {
-      r = MWbio*rate*Biom*(1 - (Biom/gDW_CDmax));
-    } else if(str.find("_L_e") != string::npos) {
-      r = rate * 1e+09 * (nBac * Biom * 1e-12);
-    } else{
-      r = (rate*Na*(1/c))*(nBac*Biom*1e-12); 
-    }
-    
-    if((Out) && (rate > 0))
-      rate = r;
-    else if((Out) && (rate < 0))
-      rate = 0;
-    else if((In) && (rate > 0))
-      rate = 0;
-    else if((In) && (rate < 0))
-      rate = -r;
-
+    r = MWbio*rate*Biom*(1 - (Biom/gDW_CDmax));
+  } else if(str.find("_L_e") != string::npos) {
+    r = rate * 1e+09 * (nBac * Biom * 1e-12);
+  } else{
+    r = (rate*Na*(1/c))*(nBac*Biom*1e-12); 
+  }
+  
+  if((Out) && (rate > 0))
+    rate = r;
+  else if((Out) && (rate < 0))
+    rate = 0;
+  else if((In) && (rate > 0))
+    rate = 0;
+  else if((In) && (rate < 0))
+    rate = -r;
+  
   return(rate);
   
 }

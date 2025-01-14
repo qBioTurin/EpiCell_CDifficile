@@ -323,12 +323,6 @@ double FBA(double *Value,
         Vars.at(vec_fluxb[0].fromNametoid(p -> second)) = (flux/marking);
       }
       
-      // if (marking == 0) {
-      //   Vars[vec_fluxb[0].fromNametoid(p -> second)] = flux;
-      // } else {
-      //   Vars[vec_fluxb[0].fromNametoid(p -> second)] = (flux/marking);
-      // }
-      
     }
     
     cout << "-------------- FBA Flag ----------------" << endl;

@@ -9,7 +9,7 @@
 Compiling general transition file
 
 Enabling flux balance.
-SAVING TIME: 0.006
+SAVING TIME: 0.007
 
 #Computing p-semiflows and place bounds: 
 /usr/local/GreatSPN/bin/PN2ODE /home/EpitCellDifficileHemeSink_unf -M -H CD196HemeSink.txt
@@ -37,14 +37,10 @@ Transition EX_trp_L_e_in has function:  Call["FBA"]
 Transition Inflam has function:  Call["Heam"]
 
 Transition EX_cys_L_e_out has function:  Call["FBA"]
-Warning: it is not possible to open input file .bnd
-
-Warning: it is not possible to open input file .pin
 
 Transition EX_trp_L_e_out has function:  Call["FBA"]
 
 Transition EX_val_L_e_out has function:  Call["FBA"]
-
 
 Transition EX_ile_L_e_out has function:  Call["FBA"]
 
@@ -76,6 +72,10 @@ Transition EX_pro_L_e_out has function:  Call["FBA"]
 
 Opening file: /home/EpitCellDifficileHemeSink_unf.bnd
 Opening file: /home/EpitCellDifficileHemeSink_unf.pin
+Warning: it is not possible to open input file .bnd
+
+Warning: it is not possible to open input file .pin
+
 
 
 START EXECUTION...
@@ -90,7 +90,7 @@ START EXECUTION...
 
 
 ===================== INFO =====================
- Total Time: 0.000803 sec
+ Total Time: 0.001143 sec
  Total Used Memory: 3648KB
  Output saved in: EpitCellDifficileHemeSink_unf.cpp
 ================================================
@@ -98,32 +98,29 @@ START EXECUTION...
 
 /home/EpitCellDifficileHemeSink_unf
 #cd /usr/local/GreatSPN/scripts/../inst_src
-#Copying file form /usr/local/GreatSPN/scripts/../inst_src to /tmp/tmp.lXff7re4mn
+#Copying file form /usr/local/GreatSPN/scripts/../inst_src to /tmp/tmp.0iqLH1ZdiN
 
-#cat /tmp/tmp.lXff7re4mn/tmpB /tmp/tmp.lXff7re4mn/incl1  /home/gen_tran_out.cpp  /tmp/tmp.lXff7re4mn/tmpE >> /tmp/tmp.lXff7re4mn/tmpA
+#cat /tmp/tmp.0iqLH1ZdiN/tmpB /tmp/tmp.0iqLH1ZdiN/incl1  /home/gen_tran_out.cpp  /tmp/tmp.0iqLH1ZdiN/tmpE >> /tmp/tmp.0iqLH1ZdiN/tmpA
 FuncT
-#cat /tmp/tmp.lXff7re4mn/tmpA >>  /tmp/tmp.lXff7re4mn/class.cpp
+#cat /tmp/tmp.0iqLH1ZdiN/tmpA >>  /tmp/tmp.0iqLH1ZdiN/class.cpp
 
-#cd /tmp/tmp.lXff7re4mn
+#cd /tmp/tmp.0iqLH1ZdiN
 
 #Compiling ... 
 g++ -D CGLPK -I./  -o  /home/EpitCellDifficileHemeSink_unf.solver  /home/EpitCellDifficileHemeSink_unf.cpp  ./class.cpp  ./lsode.cpp ./GLPKsolve.cpp ./general.cpp ./readSupport.cpp -O3 -std=c++11 -lm -Wall -lglpk
-./class.cpp:4301:24: error: ‘Vars’ was not declared in this scope
- 4301 | double rateFBA = trunc(Vars[index], decimalTrunc );
-      |                        ^~~~
-./class.cpp:4301:37: error: ‘decimalTrunc’ was not declared in this scope
- 4301 | double rateFBA = trunc(Vars[index], decimalTrunc );
-      |                                     ^~~~~~~~~~~~
 ./class.cpp: In function ‘double SDE::FBA(double*, std::vector<FBGLPK::LPprob>&, std::map<std::__cxx11::basic_string<char>, int>&, std::map<std::__cxx11::basic_string<char>, int>&, const std::vector<std::__cxx11::basic_string<char> >&, const InfTr*, int, const double&)’:
-./class.cpp:4514:42: error: ‘Vars’ was not declared in this scope
- 4514 |     cout << "Raw Vars[index] value: " << Vars[index] << endl;
-      |                                          ^~~~
-./class.cpp:4528:42: error: ‘Vars’ was not declared in this scope
- 4528 |     cout << "Raw Vars[index] value: " << Vars[index] << endl;
-      |                                          ^~~~
-./class.cpp:4543:42: error: ‘Vars’ was not declared in this scope
- 4543 |     cout << "Raw Vars[index] value: " << Vars[index] << endl;
-      |                                          ^~~~
+./class.cpp:4667:15: error: ‘rateFBA’ was not declared in this scope; did you mean ‘rate’?
+ 4667 |     r = MWbio*rateFBA*Biom*(1 - (Biom/gDW_CDmax));
+      |               ^~~~~~~
+      |               rate
+./class.cpp:4676:9: error: ‘rateFBA’ was not declared in this scope; did you mean ‘rate’?
+ 4676 |     r = rateFBA*met*1e+09*(nBac*Biom*1e-12);
+      |         ^~~~~~~
+      |         rate
+./class.cpp:4686:10: error: ‘rateFBA’ was not declared in this scope; did you mean ‘rate’?
+ 4686 |     r = (rateFBA*met*Na*(1/c))*(nBac*Biom*1e-12);
+      |          ^~~~~~~
+      |          rate
 make: *** [makefile:30: fluxb] Error 1
 #Error during compilation. 
 
