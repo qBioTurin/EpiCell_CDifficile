@@ -245,7 +245,7 @@ flux$new_eps_value = factor(flux$new_eps_value,levels = epstimes)
 #flux$config = factor(flux$config, levels = numbConfig)
 subtrace$ConfParams = subtrace$config
 
-ggplot( subtrace%>%filter(Time < 10) )+
+ggplot( subtrace )+
   geom_line(aes(x = Time, y = Marking, linetype = tag, col = tag ))+
   facet_wrap(Places~new_eps_value,scales = "free")+
   theme_bw()+

@@ -58,8 +58,7 @@ Exe.exp = function(model_cat,
          Model_Sensitivity = {
            parallel_processors = cores
            n_config = parallel_processors*replicates
-           parameters_fname <- "input/csv/
-           ParametersSensitivityAnalysis.csv"
+           parameters_fname <- "input/csv/ParametersSensitivityAnalysis.csv"
          },
          FBA_Sensitivity = {
            parallel_processors = cores
