@@ -5,7 +5,7 @@
 #'   - plot: ggplot visualization of key metrics
 #'   - Config: Data frame of configuration parameters
 #'
-configuration.closeMedian <- function(tag, Condition, subtrace = NULL) {
+configuration.closeMedian <- function(tag, Condition, subtrace = NULL,numberOfSets = 2) {
   
   # Constants
   CONSTANTS <- list(
@@ -31,7 +31,7 @@ configuration.closeMedian <- function(tag, Condition, subtrace = NULL) {
   }
   
   # Process data into groups
-  grouped_data <- create_grouped_data(subtrace)
+  grouped_data <- create_grouped_data(subtrace,numberOfSets)
   
   # Transform data for visualization
   processed_data <- transform_data_for_plotting(grouped_data)
@@ -57,11 +57,11 @@ load_subtrace_data <- function(tag, Condition, Experiment, wd) {
 }
 
 #' Create grouped data based on IECs measurements
-create_grouped_data <- function(subtrace) {
+create_grouped_data <- function(subtrace,numberOfSets) {
   subtrace %>%
-    filter(Places == "IECs", Time == 20) %>%
+    filter(Places == "IECs", round(Time,digits = 1) == 20) %>%
     group_by(Scenario) %>%
-    mutate(group = ntile(Marking, 3)) %>%
+    mutate(group = ntile(Marking, numberOfSets)) %>%
     group_by(Scenario, group) %>%
     mutate(median_value = median(Marking)) %>%
     slice_min(abs(Marking - median_value), with_ties = FALSE)
