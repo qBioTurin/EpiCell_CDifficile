@@ -127,7 +127,7 @@ supp_function.dir = "/code/supplementary_functions/"
 source("./code/supplementary_functions/MedianParamsConfiguration.R")
 
 resParams = configuration.closeMedian(Condition = "Therapy", 
-                                      tag = "Unified",
+                                      tag = "Unified", numberOfSets = 2,
                                       subtrace = NULL)
 
 plot_config = resParams$plot
@@ -158,26 +158,26 @@ update_parameters <- function(parameters_fname, new_eps_value) {
   modified_eps_line <- sub("(g;\\s*eps;.*?).*", paste0("\\1 ", new_eps_value), eps_line)
   lines[eps_line_index] <- modified_eps_line
   
-  # Update Detox
-  Detox_index <- grep("Detox", lines)
-  Detox_line = lines[Detox_index]
-  new_Detox = as.numeric(paramsConfig[nconfig, c("Detox", "Death4Treat", "IECsDeath")])[1]
-  modified_Detox_line = sub("(c;\\s*Detox;.*?).*", paste0("\\1 ", new_Detox), Detox_line)
-  lines[Detox_index] <- modified_Detox_line
-  
-  # Update Death4Treat
-  Death4Treat_index <- grep("Death4Treat", lines)
-  Death4Treat_line = lines[Death4Treat_index]
-  new_Death4Treat = as.numeric(paramsConfig[nconfig, c("Detox", "Death4Treat", "IECsDeath")])[2]
-  modified_Death4Treat_line = sub("(c;\\s*Death4Treat;.*?).*", paste0("\\1 ", new_Death4Treat), Death4Treat_line)
-  lines[Death4Treat_index] <- modified_Death4Treat_line
-  
-  # Update IECsDeath
-  IECsDeath_index <- grep("IECsDeath", lines)
-  IECsDeath_line = lines[IECsDeath_index]
-  new_IECsDeath = as.numeric(paramsConfig[nconfig, c("Detox", "Death4Treat", "IECsDeath")])[3]
-  modified_IECsDeath_line = sub("(c;\\s*IECsDeath;.*?).*", paste0("\\1 ", new_IECsDeath), IECsDeath_line)
-  lines[IECsDeath_index] <- modified_IECsDeath_line
+  # # Update Detox
+  # Detox_index <- grep("Detox", lines)
+  # Detox_line = lines[Detox_index]
+  # new_Detox = as.numeric(paramsConfig[nconfig, c("Detox", "Death4Treat", "IECsDeath")])[1]
+  # modified_Detox_line = sub("(c;\\s*Detox;.*?).*", paste0("\\1 ", new_Detox), Detox_line)
+  # lines[Detox_index] <- modified_Detox_line
+  # 
+  # # Update Death4Treat
+  # Death4Treat_index <- grep("Death4Treat", lines)
+  # Death4Treat_line = lines[Death4Treat_index]
+  # new_Death4Treat = as.numeric(paramsConfig[nconfig, c("Detox", "Death4Treat", "IECsDeath")])[2]
+  # modified_Death4Treat_line = sub("(c;\\s*Death4Treat;.*?).*", paste0("\\1 ", new_Death4Treat), Death4Treat_line)
+  # lines[Death4Treat_index] <- modified_Death4Treat_line
+  # 
+  # # Update IECsDeath
+  # IECsDeath_index <- grep("IECsDeath", lines)
+  # IECsDeath_line = lines[IECsDeath_index]
+  # new_IECsDeath = as.numeric(paramsConfig[nconfig, c("Detox", "Death4Treat", "IECsDeath")])[3]
+  # modified_IECsDeath_line = sub("(c;\\s*IECsDeath;.*?).*", paste0("\\1 ", new_IECsDeath), IECsDeath_line)
+  # lines[IECsDeath_index] <- modified_IECsDeath_line
   
   # Write the updated lines back to the file
   writeLines(lines, parameters_fname)
@@ -205,63 +205,55 @@ MultipleAnalysis = lapply(seq_along(paramsgrid[, 1]),
                             updated_content = update_parameters(
                               parameters_fname = parameters_fname, 
                               new_eps_value = new_eps_value)
+
                             
-                            # Debug print 2: Verify parameter updates
-                            new_lines <- readLines(parameters_fname)
-                            cat("\nParameter file changes:\n")
-                            cat("Old IECsDeath line:", old_lines[grep("IECsDeath", old_lines)], "\n")
-                            cat("New IECsDeath line:", new_lines[grep("IECsDeath", new_lines)], "\n")
-                            cat("Old Detox line:", old_lines[grep("Detox", old_lines)], "\n")
-                            cat("New Detox line:", new_lines[grep("Detox", new_lines)], "\n")
-                            cat("Old Death4Treat line:", old_lines[grep("Death4Treat", old_lines)], "\n")
-                            cat("New Death4Treat line:", new_lines[grep("Death4Treat", new_lines)], "\n")
-                            
-                            # model.generation(net_fname = paste0(wd, "/Net/", net_fname, ".PNPRO"),
-                            #                  transitions_fname = paste0(wd, "/Net/", tag, ".cpp"),
-                            #                  fba_fname = paste0(wd, "/input/CompiledModels/", fba_fname))
-                            # 
-                            # system(paste0("mv ", net_fname, ".* ./Net"))
-                            # 
-                            # execution_start <- Sys.time()
-                            # model.analysis(solver_fname = paste0(wd, "/Net/", net_fname, ".solver"),
-                            #                i_time = 0, 
-                            #                f_time = f_time, 
-                            #                s_time = time.step,
-                            #                fba_fname = paste0(wd, "/input/CompiledModels/", fba_fname),
-                            #                atol = atol,
-                            #                rtol = rtol, 
-                            #                debug = T,
-                            #                parameters_fname = paste0(wd, "/", parameters_fname),
-                            #                functions_fname = paste0(wd, supp_function.dir, "Functions.R"),
-                            #                event_times = if (Condition != "NoDrug") event_times,
-                            #                event_function = if (Condition != "NoDrug") "treat_generation")
-                            # execution_end <- Sys.time()
-                            # 
-                            # execution_time = as.numeric(difftime(execution_end, execution_start, units = "secs"))
-                            # 
-                            # lines <- readLines(list.files(path = wd, pattern = "\\.log$", full.names = TRUE))
-                            # file.remove(list.files(path = wd, pattern = "\\.log$", full.names = TRUE))
-                            # 
-                            # extracted_lines <- grep("Total memory used|Total time required", lines, value = TRUE)
-                            # 
-                            # times <- as.numeric(sub(".*Total time required: ([0-9]+)s.*", "\\1", extracted_lines[grepl("time required", extracted_lines)]))
-                            # memory <- as.numeric(sub(".*Total memory used: ([0-9]+)KB.*", "\\1", extracted_lines[grepl("memory used", extracted_lines)]))
-                            # 
-                            # result_df <- data.frame(Time_s = sum(times), 
-                            #                         Memory_KB = sum(memory),
-                            #                         GlobalExecution_time = execution_time, 
-                            #                         eps = new_eps_value,
-                            #                         params = paramsConfig[nconfig, "ConfParams"],
-                            #                         Scenario = tag)
-                            # 
-                            # resFolder = paste0("./results/TimingEval/CDiff", tag, Condition, new_eps_value, 
-                            #                    gsub(pattern = " ", replacement = "", x = paramsConfig[nconfig, "ConfParams"]), 
-                            #                    collapse  = "_")
-                            # 
-                            # if(dir.exists(resFolder)) system(paste("rm -r ", resFolder))
-                            # 
-                            # system(paste0("mv ", net_fname, "_analysis* ", resFolder))
-                            
+                            model.generation(net_fname = paste0(wd, "/Net/", net_fname, ".PNPRO"),
+                                             transitions_fname = paste0(wd, "/Net/", tag, ".cpp"),
+                                             fba_fname = paste0(wd, "/input/CompiledModels/", fba_fname))
+
+                            system(paste0("mv ", net_fname, ".* ./Net"))
+
+                            execution_start <- Sys.time()
+                            model.analysis(solver_fname = paste0(wd, "/Net/", net_fname, ".solver"),
+                                           i_time = 0,
+                                           f_time = f_time,
+                                           s_time = time.step,
+                                           fba_fname = paste0(wd, "/input/CompiledModels/", fba_fname),
+                                           atol = atol,
+                                           rtol = rtol,
+                                           debug = T,
+                                           ini_v = as.numeric(paramsConfig[nconfig,c("Detox","Death4Treat","IECsDeath")]),
+                                           parameters_fname = paste0(wd, "/", parameters_fname),
+                                           functions_fname = paste0(wd, supp_function.dir, "Functions.R"),
+                                           event_times = if (Condition != "NoDrug") event_times,
+                                           event_function = if (Condition != "NoDrug") "treat_generation")
+                            execution_end <- Sys.time()
+
+                            execution_time = as.numeric(difftime(execution_end, execution_start, units = "secs"))
+
+                            lines <- readLines(list.files(path = wd, pattern = "\\.log$", full.names = TRUE))
+                            file.remove(list.files(path = wd, pattern = "\\.log$", full.names = TRUE))
+
+                            extracted_lines <- grep("Total memory used|Total time required", lines, value = TRUE)
+
+                            times <- as.numeric(sub(".*Total time required: ([0-9]+)s.*", "\\1", extracted_lines[grepl("time required", extracted_lines)]))
+                            memory <- as.numeric(sub(".*Total memory used: ([0-9]+)KB.*", "\\1", extracted_lines[grepl("memory used", extracted_lines)]))
+
+                            result_df <- data.frame(Time_s = sum(times),
+                                                    Memory_KB = sum(memory),
+                                                    GlobalExecution_time = execution_time,
+                                                    eps = new_eps_value,
+                                                    params = paramsConfig[nconfig, "ConfParams"],
+                                                    Scenario = tag)
+
+                            resFolder = paste0("./results/TimingEval/CDiff", tag, Condition, new_eps_value,
+                                               gsub(pattern = " ", replacement = "", x = paramsConfig[nconfig, "ConfParams"]),
+                                               collapse  = "_")
+
+                            if(dir.exists(resFolder)) system(paste("rm -r ", resFolder))
+
+                            system(paste0("mv ", net_fname, "_analysis* ", resFolder))
+
                             traces = ModelAnalysisPlot(
                               paste0(resFolder,"/EpitCellDifficileHemeSink-analysis-1.trace"),
                               paste0(resFolder,"/EpitCellDifficileHemeSink-analysis-1-0.flux"), 
@@ -316,7 +308,7 @@ ggplot(trajectories %>%
                   c("CD", "IECs", 
                     "trp_L_e", "leu_L_e", 
                     "pheme_c", "sink_pheme_c", "pheme_e"))) +
-  geom_line(aes(x = Time, y = Marking, linetype = tag, col = tag)) +
+  geom_line(aes(x = Time, y = Marking, linetype = ConfParams, col = tag)) +
   facet_wrap(Places~new_eps_value,scales = "free") +
   theme_bw() +
   theme(
@@ -357,10 +349,10 @@ Fig2$pl2C
 # ggsave(plot = Fig2$pl2B,filename = "Figures/Fig2B.pdf",width = 8,height = 10)
 # ggsave(plot = Fig2$pl2C,filename = "Figures/Fig2C.pdf",width = 15,height = 4.5)
 
-pt = ggplot(trace%>%filter(Places %in% c("CD","IECs","BiomassCD")))+
+pt = ggplot(trajectories%>%filter(Places %in% c("CD","IECs","BiomassCD")))+
   geom_line(aes(x = Time, y = Marking, linetype = tag,  col = ConfParams ))+
   facet_grid(Places~new_eps_value,scales = "free")+
-  scale_color_manual(values = colors_new_confParams[unique(trace$ConfParams)],guide="none")+
+  scale_color_manual(values = colors_new_confParams[unique(trajectories$ConfParams)],guide="none")+
   theme_bw()+
   theme(
     plot.subtitle = element_text(size = 10, face = "bold", color = "#2a475e"),
@@ -379,13 +371,13 @@ g
 
 # Calculate percentage difference
 
-df_diff <- trace %>%
-  filter(Places %in% c("CD","IECs","BiomassCD"),Scenario!="ParAblated") %>%
+df_diff <- trajectories %>%
+  filter(Places %in% c("CD","IECs","BiomassCD"),tag == "Unified") %>%
   mutate(new_eps_value = as.character(new_eps_value) ) %>% 
   mutate(new_eps_value = str_replace(new_eps_value, "1e-6", "baseline")) %>%
-  group_by(Time, Scenario, config) %>%
+  group_by(Time, tag, config) %>%
   tidyr::spread(key = new_eps_value, value = Marking) %>%
-  tidyr::gather(-Time,-Places,-baseline,-config, -Scenario,-ConfParams, key = "new_eps_value", value = "Marking") %>%
+  tidyr::gather(-Time,-Places,-baseline,-config, -tag,-ConfParams, key = "new_eps_value", value = "Marking") %>%
   mutate(
     perc_diff = 100 * (Marking - baseline) / baseline        # % Difference
   )
