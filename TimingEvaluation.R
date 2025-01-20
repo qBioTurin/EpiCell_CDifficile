@@ -127,7 +127,8 @@ supp_function.dir = "/code/supplementary_functions/"
 source("./code/supplementary_functions/MedianParamsConfiguration.R")
 
 resParams = configuration.closeMedian(Condition = "Therapy", 
-                                      tag = "Unified", numberOfSets = 2,
+                                      tag = "Unified", 
+                                      numberOfSets = 2,
                                       subtrace = NULL)
 
 plot_config = resParams$plot
