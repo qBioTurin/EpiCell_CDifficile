@@ -122,19 +122,6 @@ distance_measure = "ReferenceM"
 parameters_fname <- "input/csv/ParametersListSinkHeme_eps.csv"
 supp_function.dir = "/code/supplementary_functions/"
 
-# Parameters closest to the median trances in FIG2B ####
-source("./code/supplementary_functions/MedianParamsConfiguration.R")
-
-resParams = configuration.closeMedian(Condition = "Therapy", 
-                                      tag = "Unified", numberOfSets = 3,
-                                      subtrace = NULL,
-                                      places2plot = c("CD", "IECs", "leu_L_e", "pheme_c"))
-
-plot_config = resParams$plot
-plot_config
-
-saveRDS(resParams, file = "paramsProve.rds")
-
 #####
 
 resParams = readRDS("./paramsProve.rds")
@@ -317,22 +304,6 @@ names(colors_new_confParams) <- unique(trajectories$ConfParams)
 colors_new_eps_value <- rev(grey.colors(length(epstimes)))
 names(colors_new_eps_value) <- unique(trajectories$new_eps_value)
 
-source("./code/plot_functions/Fig2_plot.R")
-Fig2 = plotting_Fig2_paper(Exper = "Model_Sensitivity",
-                           Condition = "Therapy",
-                           tag = c("Ablated", "ParAblated", "Unified"),
-                           param_target = "IECsDeath",
-                           Tempi = c(0, 12, 24, 36, 48, 60),
-                           wd = wd,
-                           trajectories = trajectories,
-                           colConfigSets = colors_new_confParams,
-                           variables_to_plot = c("CD", "IECs", "pheme_c", "leu_L_e", "trp_L_e"))
-
-Fig2$pl2B
-Fig2$pl2C
-
-ggsave(plot = Fig2$pl2B,filename = "Figures/Fig2B.pdf", width = 21/2, height = 23/2)
-ggsave(plot = Fig2$pl2C,filename = "Figures/Fig2C.pdf", width = 48/3, height = 30/3)
 
 # Calculate percentage difference
 

@@ -126,23 +126,143 @@ for (ablation in c("Unified", "ParAblated", "Ablated")) {
 }
 endTime = Sys.time()
 
+# Parameters closest to the median trances in FIG2B ####
+source("./code/supplementary_functions/MedianParamsConfiguration.R")
+
+resParams = configuration.closeMedian(Condition = "Therapy", 
+                                      tag = "Unified", numberOfSets = 3,
+                                      subtrace = NULL,
+                                      places2plot = c("CD", "IECs", "leu_L_e", "pheme_c"))
+
+plot_config = resParams$plot
+plot_config
+
+saveRDS(resParams, file = "paramsProve.rds")
+
+## Run the ConfSet analysis
+numbConfig = 1:dim(resParams$Config)[1]
+paramsConfig = resParams$Config
+paramsgrid = rbind(
+  expand.grid("1e-6", numbConfig, "Ablated"), 
+  expand.grid("1e-6", numbConfig, "ParAblated"),
+  expand.grid("1e-6", numbConfig, "Unified"))
+
+MultipleAnalysis = lapply(seq_along(paramsgrid[, 1]),
+                          function(c, paramsConfig, paramsgrid) {
+                            # browser()
+                            new_eps_value = paramsgrid[c, "Var1"]
+                            nconfig = paramsgrid[c, "Var2"]
+                            tag = paramsgrid[c, "Var3"]
+                            
+                            # Debug print 1: Print current configuration
+                            cat(sprintf("\n\n=== Running configuration %d ===\n", c))
+                            cat(sprintf("eps: %s, config: %d, tag: %s\n", new_eps_value, nconfig, tag))
+                            cat("Parameters being set:\n")
+                            print(paramsConfig[nconfig, c("Detox", "Death4Treat", "IECsDeath", "ConfParams")])
+                            
+                            model.generation(net_fname = paste0(wd, "/Net/", net_fname, ".PNPRO"),
+                                             transitions_fname = paste0(wd, "/Net/", tag, ".cpp"),
+                                             fba_fname = paste0(wd, "/input/CompiledModels/", fba_fname))
+                            
+                            system(paste0("mv ", net_fname, ".* ./Net"))
+                            
+                            execution_start <- Sys.time()
+                            model.analysis(solver_fname = paste0(wd, "/Net/", net_fname, ".solver"),
+                                           i_time = 0,
+                                           f_time = f_time,
+                                           s_time = time.step,
+                                           fba_fname = paste0(wd, "/input/CompiledModels/", fba_fname),
+                                           atol = atol,
+                                           rtol = rtol,
+                                           ini_v = as.numeric(paramsConfig[nconfig,c("Detox","Death4Treat","IECsDeath")]),
+                                           parameters_fname = paste0(wd, "/", parameters_fname),
+                                           functions_fname = paste0(wd, supp_function.dir, "Functions.R"),
+                                           event_times = if (Condition != "NoDrug") event_times,
+                                           event_function = if (Condition != "NoDrug") "treat_generation")
+                            execution_end <- Sys.time()
+                        
+                            resFolder = paste0("./results/TimingEval/CDiff", tag, Condition, new_eps_value,
+                                               gsub(pattern = " ", replacement = "", x = paramsConfig[nconfig, "ConfParams"]),
+                                               collapse  = "_")
+                            
+                            if(dir.exists(resFolder)) system(paste("rm -r ", resFolder))
+                            
+                            system(paste0("mv ", net_fname, "_analysis* ", resFolder))
+                            
+                            traces = ModelAnalysisPlot(
+                              paste0(resFolder,"/EpitCellDifficileHemeSink-analysis-1.trace"),
+                              paste0(resFolder,"/EpitCellDifficileHemeSink-analysis-1-0.flux"), 
+                              FluxVec = c("EX_biomass_e", "sink_pheme_c", "EX_cys_L_e", 
+                                          "EX_trp_L_e", "EX_ile_L_e", "EX_pro_L_e", "EX_leu_L_e", "EX_val_L_e"),
+                              new_eps_value,
+                              paramsConfig[nconfig, "ConfParams"],
+                              tag
+                            )
+                            
+                            debug_plot = ggplot(
+                              traces[["subtrace"]] %>% 
+                                filter(Places %in% c("IECs", "pheme_e", "BiomassCD", "CD", "pheme_c"))) +
+                              geom_line(aes(x = Time, y = Marking,
+                                            linetype = tag),
+                                        linewidth = 1) +
+                              facet_wrap(~Places, scales = "free_y") +
+                              labs(title = sprintf("Configuration %d: %s, eps=%s", 
+                                                   nconfig, 
+                                                   paramsConfig[nconfig, "ConfParams"],
+                                                   new_eps_value),
+                                   subtitle = sprintf("Detox=%.2e, Death4Treat=%.2e, IECsDeath=%.2e",
+                                                      paramsConfig[nconfig, "Detox"],
+                                                      paramsConfig[nconfig, "Death4Treat"],
+                                                      paramsConfig[nconfig, "IECsDeath"])) +
+                              theme_minimal() +
+                              theme(legend.position = "bottom")
+                            
+                            # Save the debug plot
+                            ggsave(filename = paste0(wd, "/results/", new_eps_value, "_",
+                                                     "_Set_", nconfig, "_", tag, "_debug_plot.pdf"), 
+                                   plot = debug_plot,
+                                   width = 12, height = 8)
+                            
+                            return(list(traces = traces))
+                          },
+                          paramsConfig = resParams$Config, paramsgrid
+)
+
+flux = do.call(rbind, lapply(lapply(MultipleAnalysis,"[[", 1),"[[", 1))
+trajectories = do.call(rbind, lapply(lapply(MultipleAnalysis, "[[",1), "[[", 2))
+trajectories$new_eps_value = factor(trajectories$new_eps_value, levels = epstimes)
+flux$new_eps_value = factor(flux$new_eps_value, levels = epstimes)
+trajectories$config = factor(trajectories$config, levels = paste0("Set ", numbConfig))
+flux$config = factor(flux$config, levels = paste0("Set ", numbConfig))
+trajectories$ConfParams = trajectories$config
+
+saveRDS(trajectories, file = "trajectories.rds")
+
 ##### plot FIG.2 B and C - Main paper ##### 
-# source(paste0(wd,"/code/plot_functions/Fig2_plot_old.R") )
-# 
-# pl = plotting_Fig2_paper(Exper = "Model_Sensitivity",
-#                      Condition = "Therapy",
-#                      tag = c("Ablated", "ParAblated", "Unified"),
-#                      param_target = "IECsDeath",
-#                      Tempi = c(0, 12, 24, 36, 48, 60),
-#                      colo1 = c("black", "magenta", "gold"),
-#                      colo2 = c("black", "#266867", "yellow"),
-#                      colo3 = c("#ffd166", "#ee6c4d", "#293241"),
-#                      wd )
-# pl$pl2C
-# pl$pl2B
-# 
-# ggsave(plot = pl$pl2C,filename = "Fig2C.pdf",path = "Figures/",width = 14,height = 10)
-# ggsave(plot = pl$pl2B,filename = "Fig2B.pdf",path = "Figures/",width = 10,height = 14)
+trajectories = readRDS(file = "trajectories.rds")
+
+colors_new_confParams <- c("#3B9AB2", "#ff80e3ff", "#6e2076")
+names(colors_new_confParams) <- unique(trajectories$ConfParams)
+
+colors_new_eps_value <- rev(grey.colors(length(epstimes)))
+names(colors_new_eps_value) <- unique(trajectories$new_eps_value)
+
+source("./code/plot_functions/Fig2_plot.R")
+Fig2 = plotting_Fig2_paper(Exper = "Model_Sensitivity",
+                           Condition = "Therapy",
+                           tag = c("Ablated", "ParAblated", "Unified"),
+                           param_target = "IECsDeath",
+                           Tempi = c(0, 12, 24, 36, 48, 60),
+                           wd = wd,
+                           trajectories = trajectories,
+                           colConfigSets = colors_new_confParams,
+                           variables_to_plot = c("CD", "IECs", "pheme_c", "leu_L_e", "trp_L_e"))
+
+Fig2$pl2B
+Fig2$pl2C
+
+ggsave(plot = Fig2$pl2B,filename = "Figures/Fig2B.pdf", width = 21/2, height = 23/2)
+ggsave(plot = Fig2$pl2C,filename = "Figures/Fig2C.pdf", width = 48/3, height = 30/3)
 
 ##### Extrapolate configID for the model analysis ##### 
 ##### considering the unified scenario from the sensitivity analysis

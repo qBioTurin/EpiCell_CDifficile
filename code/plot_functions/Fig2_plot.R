@@ -1,14 +1,14 @@
 library(ggnewscale)
 
-Exper = "Model_Sensitivity"
-Condition = "Therapy"
-tag = c("Ablated", "ParAblated", "Unified")
-param_target = "IECsDeath"
-Tempi = c(10, 20, 30, 40, 50, 60)
-wd = wd
-trajectories = trajectories
-colConfigSets = colors_new_confParams
-variables_to_plot = c("CD", "IECs", "pheme_c", "leu_L_e", "trp_L_e")
+# Exper = "Model_Sensitivity"
+# Condition = "Therapy"
+# tag = c("Ablated", "ParAblated", "Unified")
+# param_target = "IECsDeath"
+# Tempi = c(10, 20, 30, 40, 50, 60)
+# wd = wd
+# trajectories = trajectories
+# colConfigSets = colors_new_confParams
+# variables_to_plot = c("CD", "IECs", "pheme_c", "leu_L_e", "trp_L_e")
 
 plotting_Fig2_paper = function(Exper,
                                Condition,
@@ -119,7 +119,6 @@ plotting_Fig2_paper = function(Exper,
                    dplyr::filter(Time %in% Tempi,
                                  Places == variable, 
                                  tag == j, 
-                                 Places == variable, 
                                  new_eps_value == "1e-6"),
                  aes(y = Time, x = Marking*row$unit, group = Time, col = ConfParams), size = 3) +
       scale_color_manual(values = colConfigSets[unique(trajectories$ConfParams)]) +
