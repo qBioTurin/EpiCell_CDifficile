@@ -1,6 +1,6 @@
 
-csvFileUpdating.minRankConfigID = function(wd, net_fname)
-{
+csvFileUpdating.minRankConfigID = function(wd, net_fname) {
+  
   tag = "Unified"
   Exper = "Model_Sensitivity"
   Condition = "Therapy"
@@ -31,10 +31,9 @@ csvFileUpdating.minRankConfigID = function(wd, net_fname)
   # Get the ID with the minimum measure value and write it to ConfigID.txt file
   id <- rank$config[which(rank$measure == min(rank$measure))]
 
-  print(paste0("#### Configuration ID: ",id))
-  ###### Model Simulation Phase
+  print(paste0("#### Configuration ID: ", id))
 
-  param_target = c("IECsDeath", "Death4Treat", "Detox")
+  param_target = c("Detox", "Death4Treat", "IECsDeath")
   
   load(paste0(wd,"/results/CDiff", "_", tag, "_", Condition, "_", Exper, "/", net_fname, "-analysis.RData"))
 

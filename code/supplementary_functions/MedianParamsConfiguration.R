@@ -5,7 +5,11 @@
 #'   - plot: ggplot visualization of key metrics
 #'   - Config: Data frame of configuration parameters
 #'
-configuration.closeMedian <- function(tag, Condition, subtrace = NULL,numberOfSets = 2) {
+configuration.closeMedian <- function(tag, 
+                                      Condition, 
+                                      subtrace = NULL, 
+                                      numberOfSets = 2,
+                                      places2plot = c("CD", "IECs", "BiomassCD", "pheme_c")) {
   
   # Constants
   CONSTANTS <- list(
@@ -37,7 +41,7 @@ configuration.closeMedian <- function(tag, Condition, subtrace = NULL,numberOfSe
   processed_data <- transform_data_for_plotting(grouped_data)
   
   # Create visualization
-  plot_output <- create_visualization(processed_data)
+  plot_output <- create_visualization(processed_data, places2plot)
   
   # Generate configuration summary
   config_summary <- summarize_configurations(processed_data, subtrace)
@@ -84,9 +88,9 @@ transform_data_for_plotting <- function(grouped_data) {
 }
 
 #' Create visualization plot
-create_visualization <- function(processed_data) {
+create_visualization <- function(processed_data, places2plot) {
   processed_data %>%
-    filter(Places %in% c("CD", "IECs", "BiomassCD", "pheme_e")) %>%
+    filter(Places %in% places2plot) %>%
     ggplot() +
     geom_line(aes(x = Time, y = Marking, 
                   group = ConfParams, 

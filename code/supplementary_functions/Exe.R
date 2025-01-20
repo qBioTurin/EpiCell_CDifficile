@@ -96,22 +96,7 @@ Exe.exp = function(model_cat,
       system(paste("rm -r ./results/FVA", tag, Condition, Exper, sep = "_"))
       system(paste("mv Model_sensitivity* ./results/FVA", tag, Condition, Exper, sep = "_"))
       
-      if (FVAcomparison) {
-        
-        source(paste0(supp_function.dir, "glpkVsSybil_4server.R"))
-        
-        # p = ((deltaVFAmin|deltaVFAmax)/(deltaFVA|deltaFBA))/(pFBA|pFVA)
-        # 
-        # ggsave(p, file = paste("FVAComp", tag, Condition, ".pdf", sep = ""), 
-        #        width = 10, height = 10)
-        # 
-        # system(paste("cp ./FVAComp", tag, Condition, ".pdf ", "./results/FVA", "_",
-        #              tag, "_", Condition, "_", Exper, sep = ""))
-        # 
-        # system(paste("mv ./FVAComp", tag, Condition, ".pdf ", "./results/FVA", "_",
-        #              tag, "_", Condition, "_", Exper, sep = ""))
-        
-      }
+      if (FVAcomparison) {source(paste0(supp_function.dir, "glpkVsSybil_4server.R"))}
       
     }
     
@@ -176,12 +161,14 @@ Exe.exp = function(model_cat,
     
     if (multi_param){
       failed.tr <- c()
-      #f.tr <- 1
       
       registerDoParallel(cores = detectCores())
-      subtrace <- foreach(i = sample(list.files(pattern = "\\.trace$",
-                                                path = resfolder, full.names = T), r), .combine = rbind) %dopar% {
-        
+      
+      subtrace <- foreach(
+        i = sample(list.files(
+          pattern = "\\.trace$",
+          path = resfolder, full.names = T), r), .combine = rbind) %dopar% {
+                                
         TracesPath <- i
         
         n <- as.numeric(gsub(pattern = paste0("(", net_fname, "-analysis-)|(.trace)"), replacement = "", x = basename(i)) )

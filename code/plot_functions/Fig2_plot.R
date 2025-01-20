@@ -1,13 +1,14 @@
 library(ggnewscale)
 
-# Exper = "Model_Sensitivity"
-# Condition = "Therapy"
-# tag = c("Ablated", "Unified")
-# param_target = "IECsDeath"
-# Tempi = c(0, 12, 24, 36, 48, 60)
-# wd = wd
-# trajectories = trajectories
-# colConfigSets = colors_new_confParams
+Exper = "Model_Sensitivity"
+Condition = "Therapy"
+tag = c("Ablated", "ParAblated", "Unified")
+param_target = "IECsDeath"
+Tempi = c(10, 20, 30, 40, 50, 60)
+wd = wd
+trajectories = trajectories
+colConfigSets = colors_new_confParams
+variables_to_plot = c("CD", "IECs", "pheme_c", "leu_L_e", "trp_L_e")
 
 plotting_Fig2_paper = function(Exper,
                                Condition,
@@ -16,7 +17,8 @@ plotting_Fig2_paper = function(Exper,
                                Tempi,
                                wd,
                                trajectories,
-                               colConfigSets) {
+                               colConfigSets,
+                               variables_to_plot) {
   
   Na = 6.022e20
   c = 6.022e08
@@ -28,46 +30,45 @@ plotting_Fig2_paper = function(Exper,
   
   aa_places <- c("trp_L_e", "pro_L_e", "val_L_e", "ile_L_e", "cys_L_e", "leu_L_e")
   places <- c("CD", "IECs", "BiomassCD", "Drug", "pheme_e", "pheme_c", aa_places)
-  units = c(rep("(cell)", 2), "(pg)", rep("(µmol)", 9))
+  units = c(rep("(cell)", 2), "(pg)", rep("(mmol)", 9))
   
   subtrace <- do.call(rbind, lapply(tag, function(j) {
     subtrace = readRDS(file = paste0(wd, paste0("/results/CDiff", "_", j, "_", Condition, "_", Exper),"/subtrace_" , j, Condition, ".rds"))
     cbind(subtrace, Scenario = rep(j, length(subtrace$Time)))
   }))
   
-  lineCon = data.frame(Therapy = "solid", NoDrug = "dashed")
-  
-  # Sample data for demonstration
   df_for_df <- data.frame(
     variable = c("CD", "IECs", "trp_L_e", "leu_L_e", "pheme_c", "sink_pheme_c", "pheme_e"),
-    unit = c(1, 1, (1 / (1 * (6.022e+20 * (1 / 6.022e+08)))) * 1e+03, 
+    scale_x_min = c(NA, NA, NA, NA, NA, NA, NA),
+    scale_x_max = c(1e09, NA, NA, NA, 700, NA, NA),
+    scale_y_min = c(0, 0, NA, NA, 0, NA, 0),
+    scale_y_max = c(1e09, NA, NA, NA, 700, NA, NA),
+    unit = c(1, 1, (1 / (1 * (6.022e+20 * (1 / 6.022e+08)))) * 1e+03,
              (1 / (1 * (6.022e+20 * (1 / 6.022e+08)))) * 1e+03, 1e-03, 1, 1e-03),
-    y_label = c("C. difficile (cell)", 
-                "IECs (cell)", 
-                "Tryptophan (mmol/mL)", 
-                "Leucine (mmol/mL)", 
-                "Heme (µmol)",
-                "heme flux (mmol/gDW*h)",
-                "Heme (µmol)"
-    ),
-    subtitle = c("C. difficile cells", 
-                 "Intestinal epithelial cells", 
-                 "Extracellular Tryptophan concentration", 
-                 "Extracellular Leucine concentration", 
+    y_label = c("log(C. difficile) (cell)",
+                "log(IECs) (cell)",
+                "log(Tryptophan) (mmol/mL)",
+                "log(Leucine) (mmol/mL)",
+                "log(Heme) (µmol)",
+                "log(heme flux) (mmol/gDW*h)",
+                "log(Heme) (µmol)"),
+    subtitle = c("C. difficile cells",
+                 "Intestinal epithelial cells",
+                 "Extracellular Tryptophan concentration",
+                 "Extracellular Leucine concentration",
                  "Heme intracellular concentration",
                  "Heme intracellular metabolism",
                  "Heme extracellular concentration"),
-    scale_x_min = c(0, 0, 0, 0, 0, -0.0015, NA),
-    scale_x_max = c(8e+08, 4.75e+05, 0.02, 0.15, 50, 0, NA),
-    scale_y_min = c(0, NA, 0, 0, 0, -0.0013, NA),
-    scale_y_max = c(1.1e+09, NA, 0.15, 1, 150, 0, NA),
     colo_l = c("#373332ff", "#373332ff", "#373332ff", "#373332ff", "#373332ff", "#373332ff", "#373332ff"),
-    colo_m = c("#d09565ff", "#ff80e3ff", "#d09565ff", "#d09565ff", "#d09565ff", "#89ca66b6",  "#d09565ff"),
+    colo_m = c("#89ca66b6", "#ff80e3ff", "#d09565ff", "#d09565ff", "#d09565ff", "#89ca66b6",  "#d09565ff"),
     colo_h = c("gold", "gold", "#ff8978ff", "#ff8978ff", "gold", "gold", "#ff8978ff"),
     trace = c(TRUE, TRUE, TRUE, TRUE, TRUE, FALSE, TRUE)
   )
   
-  generate_plot <- function(variable, j) {
+  variable = "CD"
+  j = "Ablated"
+  
+  generate_plot <- function(variable, j, coloTag) {
     
     row <- df_for_df[df_for_df$variable == variable, ]
     
@@ -83,16 +84,30 @@ plotting_Fig2_paper = function(Exper,
         dplyr::mutate(Time = as.numeric(Time))
     }
     
+    scientific_10 <- function(x) {
+      text = gsub("e", " %*% 10^", scales::scientific_format()(x))
+      text[1] = "0"
+      parse(text=text)
+    }
+    
+    # Create scale_x based on variable
+    x_scale <- if(variable == "CD") {
+      scale_x_continuous(limits = c(row$scale_x_min, row$scale_x_max), 
+                         label=scientific_10, breaks = (seq(0, row$scale_x_max, length.out = 3)))
+    } else {
+      scale_x_continuous(limits = c(row$scale_x_min, row$scale_x_max))
+    }
+    
     p1 <- dplyr::filter(df, Scenario == j) %>%
-      dplyr::filter(Time %in% c(0, 4, 8, 12, 16, 20)) %>%
+      dplyr::filter(Time %in% Tempi) %>%
       dplyr::mutate(Time = as.character(Time)) %>%
       ggplot(aes(x = Marking*row$unit, y = as.numeric(Time), group = Time)) +
       theme_minimal() +
-      labs(y = "Time (h)", x = row$y_label) +
-      theme(plot.title = element_text(size = 10, face = "bold", color = coloTag[, j]),
+      labs(y = "Time (h)", x = gsub("log\\(([^)]+)\\)\\s*\\(([^)]+)\\)", "\\1 (\\2)", row$y_label)) +
+      theme(plot.title = element_text(size = 15, face = "bold", color = coloTag[, j]),
             plot.subtitle = element_text(size = 10, face = "bold", color = "#2a475e"),
             plot.title.position = "plot", 
-            axis.text = element_text(size = 9, color = "black"),
+            axis.text = element_text(size = 15, color = "black"),
             axis.title = element_text(size = 15, face = "bold"),
             legend.key.size = unit(0.4, "cm"),
             legend.position = "bottom") + 
@@ -101,52 +116,91 @@ plotting_Fig2_paper = function(Exper,
       scale_colour_gradientn(colors = c(row$colo_l, row$colo_m, row$colo_h), oob = scales::squish) +
       ggnewscale::new_scale_color() +
       geom_point(data = trajectories %>% 
-                   dplyr::filter(Time %in% c(0, 4, 8, 12, 16, 20),
+                   dplyr::filter(Time %in% Tempi,
                                  Places == variable, 
                                  tag == j, 
                                  Places == variable, 
                                  new_eps_value == "1e-6"),
                  aes(y = Time, x = Marking*row$unit, group = Time, col = ConfParams), size = 3) +
-      scale_color_manual(values = colConfigSets[unique(trajectories$ConfParams)])
+      scale_color_manual(values = colConfigSets[unique(trajectories$ConfParams)]) +
+      x_scale
     
     p2 <- dplyr::filter(df, Scenario == j) %>%
-      ggplot(aes(x = Time, y = Marking*row$unit, color = IECsDeath)) + 
+      ggplot() + 
+      geom_line(aes(x = Time, y = Marking*row$unit, color = IECsDeath, group = config), alpha = 0.1) +
+      scale_colour_gradientn(colors = c(row$colo_l, row$colo_m, row$colo_h), oob = scales::squish) +
+      new_scale_color() +
+      geom_line(data = trajectories %>% 
+                  dplyr::filter(Places == variable, 
+                                tag == j,
+                                new_eps_value == "1e-6") %>%
+                  distinct(Time, ConfParams, tag, .keep_all = TRUE),
+                aes(x = Time, y = Marking*row$unit,
+                    group = interaction(ConfParams, tag),
+                    color = ConfParams,
+                    linetype = tag),
+                linewidth = 1) +
+      scale_color_manual(values = colConfigSets, name = "Sets") +
+      scale_linetype_manual(values = c("Unified" = "solid", "Ablated" = "dashed"), name = "Scenario") +
       theme_minimal() +
-      labs(x = "Time (h)", y = row$y_label) + 
-      theme(plot.title = element_text(size = 10, face = "bold", color = coloTag[, j]),
+      labs(x = "Time (h)", 
+           y = gsub("log\\(([^)]+)\\)\\s*\\(([^)]+)\\)", "\\1 (\\2)", row$y_label),
+           color = "Configuration", 
+           linetype = "Scenario") + 
+      theme(plot.title = element_text(size = 15, face = "bold", color = coloTag[, j]),
             plot.subtitle = element_text(size = 10, face = "bold", color = "#2a475e"),
             plot.title.position = "plot", 
-            axis.text = element_text(size = 9, color = "black"),
+            axis.text = element_text(size = 15, color = "black"),
             axis.title = element_text(size = 15, face = "bold"),
             legend.key.size = unit(0.4, "cm"),
-            legend.position = "bottom") + 
-      geom_line(aes(group = config), alpha = 0.65) +
-      scale_colour_gradientn(colors = c(row$colo_l, row$colo_m, row$colo_h), oob = scales::squish)
+            legend.position = "bottom")
     
-    return(list(p1,p2))
+    return(list(p1, p2))
   }
   
   pl2C = (
-    (generate_plot("IECs", "Ablated")[[1]] + labs(title = "Ablated") +
-       generate_plot("pheme_c", "Ablated")[[1]]) |
-      (generate_plot("IECs", "Unified")[[1]] + labs(title = "Unified") +
-         generate_plot("pheme_c", "Unified")[[1]])
+    ((generate_plot("CD", "Ablated", coloTag)[[1]] + labs(title = "Ablated")) |
+       generate_plot("leu_L_e", "Ablated", coloTag)[[2]] | 
+       generate_plot("trp_L_e", "Ablated", coloTag)[[2]] |
+       generate_plot("pheme_c", "Ablated", coloTag)[[1]]
+     ) /
+      ((generate_plot("CD", "ParAblated", coloTag)[[1]] + labs(title = "ParAblated")) |
+         generate_plot("leu_L_e", "ParAblated", coloTag)[[2]] | 
+         generate_plot("trp_L_e", "ParAblated", coloTag)[[2]] |
+         generate_plot("pheme_c", "ParAblated", coloTag)[[1]]
+      ) /
+      ((generate_plot("CD", "Unified", coloTag)[[1]] + labs(title = "Unified")) |
+         generate_plot("leu_L_e", "Unified", coloTag)[[2]] | 
+         generate_plot("trp_L_e", "Unified", coloTag)[[2]] |
+         generate_plot("pheme_c", "Unified", coloTag)[[1]])
     ) + plot_layout(guides = "collect") & theme(legend.position = "bottom")
   
-  
-  ####### fig2B
   # Define your col_settings
-  col_settings = c("darkred", "#5351A2")
+  col_settings = c(coloTag["Ablated"][1, ], coloTag["Unified"][1, ])
   
-  # Define the plotting function
+  # plot_data <- df_for_df %>% dplyr::filter(variable == "CD")
+  
   generate_plots <- function(plot_data, trajectories, subtrace) {
     
     variable = plot_data$variable
-    unit = plot_data$unit
+    unit = plot_data$unit 
     y_label = plot_data$y_label
-    subtitle = plot_data$subtitle
+    # subtitle = plot_data$subtitle
     scale_y_min = plot_data$scale_y_min
     scale_y_max = plot_data$scale_y_max
+    
+    scientific_10 <- function(x) {
+      text = gsub("e", " %*% 10^", scales::scientific_format()(x))
+      text[1] = "0"
+      parse(text=text)
+    }
+    
+    # Create scale_x based on variable
+    y_scale <- if(variable == "CD") {
+      scale_y_continuous(label = scientific_10, breaks = seq(scale_y_min, scale_y_max, length.out = 6))
+    } else {
+      NULL
+    }
     
     df <- subtrace %>%
       dplyr::filter(Places == variable) %>%
@@ -159,12 +213,24 @@ plotting_Fig2_paper = function(Exper,
       dplyr::mutate(Time = as.numeric(Time)) %>%
       dplyr::filter(tag != "ParAblated", new_eps_value == "1e-6")
     
+    transform_y <- function(marking, unit) {
+      if(variable == "CD") {
+        return(marking * unit)
+      } else {
+        return(log(abs(marking * unit) + 1))
+      }
+    }
+    
+    # Modify y_label based on variable
+    if(variable == "CD") {
+      y_label = gsub("log\\(([^)]+)\\)\\s*\\(([^)]+)\\)", "\\1 (\\2)", y_label)
+    }
+    
+    # Base plot p1
     p1 <- ggplot(df) +
-      geom_line( aes(x = Time, 
-                     y = Marking*unit, 
-                     color = Scenario, 
-                     group = interaction(config, Scenario)), 
-                 alpha = 0.12) +
+      geom_line(
+        aes(x = Time, y = transform_y(Marking, unit), 
+            color = Scenario, group = interaction(config, Scenario)), alpha = 0.05) +
       labs(y = y_label, x = "Time (h)") +
       theme_minimal() +
       theme(legend.position = "none",
@@ -173,46 +239,57 @@ plotting_Fig2_paper = function(Exper,
             plot.title.position = "plot",
             axis.text = element_text(size = 15, color = "black"),
             axis.title = element_text(size = 15, face = "bold")) +
-      scale_colour_manual(values = col_settings)
+      scale_colour_manual(values = col_settings) + y_scale
     
+    if(variable == "IECs") {
+      p1 <- p1 + geom_vline(xintercept = 20, linetype = "dotted", color = "darkgrey")
+    }
+    
+    # Base plot p2
     p2 <- ggplot(df) +
-      geom_line(aes(x = Time, y = Marking*unit, group = config, color = Scenario), alpha = 0.01) +
+      geom_line(aes(x = Time, y = transform_y(Marking, unit), 
+                    group = config, color = Scenario), alpha = 0.005) +
       scale_color_manual(values = c("Ablated" = "darkred", "Unified" = "#5351A2"), name = "Scenario") +
       new_scale_color() +
-      geom_line(data = dfsub |> distinct(Time, ConfParams, tag, .keep_all = TRUE), aes(x = Time, y = Marking*unit,
-                                  group = interaction(ConfParams, tag), 
-                                  color = ConfParams, linetype = tag), linewidth = 1.5) +
-      scale_color_manual(values = c("Set 1" = "#3B9AB2", 
-                                    "Set 2" = "#89ca66b6", 
-                                    "Set 3" = "#972D15"), 
-                         name = "Sets") +
+      geom_line(data = dfsub |> distinct(Time, ConfParams, tag, .keep_all = TRUE), 
+                aes(x = Time, y = transform_y(Marking, unit),
+                    group = interaction(ConfParams, tag), 
+                    color = ConfParams, linetype = tag), linewidth = 0.75) +
+      scale_color_manual(values = colConfigSets, name = "Sets") +
+      scale_linetype_manual(values = c("Unified" = "solid", "Ablated" = "dashed"), name = "Scenario") +
       labs(y = y_label, x = "Time (h)", color = "Configuration", linetype = "Scenario") +
       theme_minimal() +
-      theme(legend.position = "bottom",
+      theme(legend.position = "none",
             plot.title = element_text(size = 9, face = "bold", color = "black"),
             plot.subtitle = element_text(size = 9, face = "bold", color = "#2a475e"),
             plot.title.position = "plot", 
             axis.text = element_text(size = 15, color = "black"),
-            axis.title = element_text(size = 15, face = "bold")) 
+            axis.title = element_text(size = 15, face = "bold")) + y_scale
     
-    p3 <- ggplot(df, aes(x = Time, y = Marking * unit, color = Scenario, linetype = Scenario)) +
-      geom_line(aes(group = interaction(config, Scenario)), alpha = 0.0075) + 
-      stat_summary(aes(group = Scenario), fun = median, geom = "line", linetype = "solid", size = 0.5) +
-      labs(y = y_label, x = "Time (h)", subtitle = subtitle, title = "Comparison of Experimental Settings") + 
+    # Base plot p3
+    p3 <- ggplot(df, aes(x = Time, y = transform_y(Marking, unit), 
+                         color = Scenario, linetype = Scenario)) +
+      geom_line(aes(group = interaction(config, Scenario)), alpha = 0.01) + 
+      stat_summary(aes(group = Scenario), fun = median, geom = "line", linetype = "solid", linewidth = 0.75) +
+      labs(y = y_label, x = "Time (h)", 
+           # subtitle = subtitle, 
+           # title = "Median trajectories in each setting"
+           ) + 
       theme_minimal() +
-      theme(legend.position = "right",
+      theme(legend.position = "none",
             plot.title = element_text(size = 9, face = "bold", color = "black"),
             plot.subtitle = element_text(size = 9, face = "bold", color = "#2a475e"),
             plot.title.position = "plot", 
             axis.text = element_text(size = 15, color = "black"),
             axis.title = element_text(size = 15, face = "bold")) +
-      scale_colour_manual(values = col_settings)
+      scale_colour_manual(values = col_settings) + y_scale
+    
+    if(variable == "IECs") {
+      p2 <- p2 + geom_vline(xintercept = 20, linetype = "solid", color = "black", size = 0.35)
+    }
     
     return(list(p1 = p1, p2 = p2, p3 = p3))
   }
-  
-  # Define the variables you want to plot
-  variables_to_plot <- c("CD", "IECs", "pheme_c")
   
   # Initialize lists to store the plots
   p1_list <- list()
@@ -232,10 +309,10 @@ plotting_Fig2_paper = function(Exper,
   }
   
   # Combine the plots into a single plot using patchwork
-  pl2B = (p1_list$CD + p2_list$CD +
-            p1_list$IECs + p2_list$IECs + 
-            p1_list$pheme_c + p2_list$pheme_c  + 
+  pl2B = (p3_list$CD + p2_list$CD +
+            p3_list$IECs + p2_list$IECs + 
+            p3_list$pheme_c + p2_list$pheme_c + 
             plot_layout(ncol = 2))
   
-  return(list(pl2B=pl2B,pl2C=pl2C))
+  return(list(pl2B = pl2B, pl2C = pl2C))
 }
