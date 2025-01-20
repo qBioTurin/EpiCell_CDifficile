@@ -123,13 +123,12 @@ parameters_fname <- "input/csv/ParametersListSinkHeme_eps.csv"
 supp_function.dir = "/code/supplementary_functions/"
 
 # Parameters closest to the median trances in FIG2B ####
-
 source("./code/supplementary_functions/MedianParamsConfiguration.R")
 
 resParams = configuration.closeMedian(Condition = "Therapy", 
-                                      tag = "Unified", 
-                                      numberOfSets = 2,
-                                      subtrace = NULL)
+                                      tag = "Unified", numberOfSets = 3,
+                                      subtrace = NULL,
+                                      places2plot = c("CD", "IECs", "leu_L_e", "pheme_c"))
 
 plot_config = resParams$plot
 plot_config
@@ -140,7 +139,7 @@ saveRDS(resParams, file = "paramsProve.rds")
 
 resParams = readRDS("./paramsProve.rds")
 
-epstimes = c("1e-6","1e-4","1e-2")
+epstimes = c("1e-6", "0.1", "0.5", "0.6", "0.7", "0.8", "0.9", "1")
 numbConfig = 1:dim(resParams$Config)[1]
 paramsConfig = resParams$Config
 
@@ -159,27 +158,6 @@ update_parameters <- function(parameters_fname, new_eps_value) {
   modified_eps_line <- sub("(g;\\s*eps;.*?).*", paste0("\\1 ", new_eps_value), eps_line)
   lines[eps_line_index] <- modified_eps_line
   
-  # # Update Detox
-  # Detox_index <- grep("Detox", lines)
-  # Detox_line = lines[Detox_index]
-  # new_Detox = as.numeric(paramsConfig[nconfig, c("Detox", "Death4Treat", "IECsDeath")])[1]
-  # modified_Detox_line = sub("(c;\\s*Detox;.*?).*", paste0("\\1 ", new_Detox), Detox_line)
-  # lines[Detox_index] <- modified_Detox_line
-  # 
-  # # Update Death4Treat
-  # Death4Treat_index <- grep("Death4Treat", lines)
-  # Death4Treat_line = lines[Death4Treat_index]
-  # new_Death4Treat = as.numeric(paramsConfig[nconfig, c("Detox", "Death4Treat", "IECsDeath")])[2]
-  # modified_Death4Treat_line = sub("(c;\\s*Death4Treat;.*?).*", paste0("\\1 ", new_Death4Treat), Death4Treat_line)
-  # lines[Death4Treat_index] <- modified_Death4Treat_line
-  # 
-  # # Update IECsDeath
-  # IECsDeath_index <- grep("IECsDeath", lines)
-  # IECsDeath_line = lines[IECsDeath_index]
-  # new_IECsDeath = as.numeric(paramsConfig[nconfig, c("Detox", "Death4Treat", "IECsDeath")])[3]
-  # modified_IECsDeath_line = sub("(c;\\s*IECsDeath;.*?).*", paste0("\\1 ", new_IECsDeath), IECsDeath_line)
-  # lines[IECsDeath_index] <- modified_IECsDeath_line
-  
   # Write the updated lines back to the file
   writeLines(lines, parameters_fname)
   
@@ -187,9 +165,8 @@ update_parameters <- function(parameters_fname, new_eps_value) {
 }
 
 MultipleAnalysis = lapply(seq_along(paramsgrid[, 1]),
-                          
                           function(c, paramsConfig, paramsgrid) {
-                            
+                            # browser()
                             new_eps_value = paramsgrid[c, "Var1"]
                             nconfig = paramsgrid[c, "Var2"]
                             tag = paramsgrid[c, "Var3"]
@@ -236,6 +213,8 @@ MultipleAnalysis = lapply(seq_along(paramsgrid[, 1]),
                             file.remove(list.files(path = wd, pattern = "\\.log$", full.names = TRUE))
 
                             extracted_lines <- grep("Total memory used|Total time required", lines, value = TRUE)
+                            
+                            n_FBA = length(grep("FBA call", lines, value = TRUE))
 
                             times <- as.numeric(sub(".*Total time required: ([0-9]+)s.*", "\\1", extracted_lines[grepl("time required", extracted_lines)]))
                             memory <- as.numeric(sub(".*Total memory used: ([0-9]+)KB.*", "\\1", extracted_lines[grepl("memory used", extracted_lines)]))
@@ -244,6 +223,7 @@ MultipleAnalysis = lapply(seq_along(paramsgrid[, 1]),
                                                     Memory_KB = sum(memory),
                                                     GlobalExecution_time = execution_time,
                                                     eps = new_eps_value,
+                                                    FBA_calls = n_FBA,
                                                     params = paramsConfig[nconfig, "ConfParams"],
                                                     Scenario = tag)
 
@@ -303,14 +283,17 @@ trajectories$config = factor(trajectories$config, levels = paste0("Set ", numbCo
 flux$config = factor(flux$config, levels = paste0("Set ", numbConfig))
 trajectories$ConfParams = trajectories$config
 
-ggplot(trajectories %>% 
-         filter(Time < 15) %>%
-         filter(Places %in% 
-                  c("CD", "IECs", 
-                    "trp_L_e", "leu_L_e", 
-                    "pheme_c", "sink_pheme_c", "pheme_e"))) +
-  geom_line(aes(x = Time, y = Marking, linetype = ConfParams, col = tag)) +
-  facet_wrap(Places~new_eps_value,scales = "free") +
+saveRDS(trajectories, file = "trajectories.rds")
+
+###
+
+trajectories = readRDS(file = "trajectories.rds")
+
+plot_varying_eps = ggplot(trajectories 
+       # %>% filter(Time < 25) 
+       %>% filter(Places %in% c("CD", "IECs", "pheme_c", "leu_L_e"))) +
+  geom_line(aes(x = Time, y = Marking, linetype = ConfParams, col = new_eps_value)) +
+  facet_grid(Places~tag,scales = "free") +
   theme_bw() +
   theme(
     plot.subtitle = element_text(size = 10, face = "bold", color = "#2a475e"),
@@ -325,13 +308,13 @@ ggplot(trajectories %>%
   labs(x = "Time (h)", y = "Quantity", linetype = "tag") +
   geom_vline(xintercept = 8)
 
-############
+plot_varying_eps
 
 # Define color mappings for facets
-colors_new_confParams <- c("#3B9AB2", "#89ca66b6", "#972D15")
+colors_new_confParams <- c("#3B9AB2", "#ff80e3ff", "#6e2076")
 names(colors_new_confParams) <- unique(trajectories$ConfParams)
 
-colors_new_eps_value <- rev(grey.colors(5))
+colors_new_eps_value <- rev(grey.colors(length(epstimes)))
 names(colors_new_eps_value) <- unique(trajectories$new_eps_value)
 
 source("./code/plot_functions/Fig2_plot.R")
@@ -342,46 +325,38 @@ Fig2 = plotting_Fig2_paper(Exper = "Model_Sensitivity",
                            Tempi = c(0, 12, 24, 36, 48, 60),
                            wd = wd,
                            trajectories = trajectories,
-                           colConfigSets = colors_new_confParams)
+                           colConfigSets = colors_new_confParams,
+                           variables_to_plot = c("CD", "IECs", "pheme_c", "leu_L_e", "trp_L_e"))
 
 Fig2$pl2B
 Fig2$pl2C
 
-# ggsave(plot = Fig2$pl2B,filename = "Figures/Fig2B.pdf",width = 8,height = 10)
-# ggsave(plot = Fig2$pl2C,filename = "Figures/Fig2C.pdf",width = 15,height = 4.5)
-
-pt = ggplot(trajectories%>%filter(Places %in% c("CD","IECs","BiomassCD")))+
-  geom_line(aes(x = Time, y = Marking, linetype = tag,  col = ConfParams ))+
-  facet_grid(Places~new_eps_value,scales = "free")+
-  scale_color_manual(values = colors_new_confParams[unique(trajectories$ConfParams)],guide="none")+
-  theme_bw()+
-  theme(
-    plot.subtitle = element_text(size = 10, face = "bold", color = "#2a475e"),
-    plot.title.position = "plot", 
-    axis.text = element_text(size = 9, color = "black"),
-    axis.title = element_text(size = 15, face = "bold"),
-    legend.key.size = unit(0.4, "cm"),
-    strip.text.x = element_text(size = 10, face = "bold", colour = "white"),
-    strip.text.y = element_text(size = 10, face = "bold", colour = "black"),
-    strip.background.y = element_rect( fill = "white"),
-    legend.position = "top")+
-  labs(x = "Time (h)",y = "Quantity", linetype = "Scenario")
-
-g = changecolorsFacet(pt,colors_new_eps_value)
-g
+ggsave(plot = Fig2$pl2B,filename = "Figures/Fig2B.pdf", width = 21/2, height = 23/2)
+ggsave(plot = Fig2$pl2C,filename = "Figures/Fig2C.pdf", width = 48/3, height = 30/3)
 
 # Calculate percentage difference
 
 df_diff <- trajectories %>%
-  filter(Places %in% c("CD","IECs","BiomassCD"),tag == "Unified") %>%
+  filter(tag == "Unified") %>%
+  mutate(Marking = round(Marking,digits = 12))%>%
   mutate(new_eps_value = as.character(new_eps_value) ) %>% 
   mutate(new_eps_value = str_replace(new_eps_value, "1e-6", "baseline")) %>%
   group_by(Time, tag, config) %>%
   tidyr::spread(key = new_eps_value, value = Marking) %>%
   tidyr::gather(-Time,-Places,-baseline,-config, -tag,-ConfParams, key = "new_eps_value", value = "Marking") %>%
-  mutate(
-    perc_diff = 100 * (Marking - baseline) / baseline        # % Difference
-  )
+  mutate(perc_diff = if_else(baseline!= 0 , 100 * (Marking - baseline) / baseline , 100 * Marking))
+
+most_variable_places <- df_diff %>%
+  group_by(Places) %>%
+  summarize(
+    mean_abs_diff = mean(abs(perc_diff), na.rm = TRUE),
+    sd_diff = sd(abs(perc_diff), na.rm = TRUE)
+  ) %>%
+  arrange(desc(mean_abs_diff)) %>%
+  slice_head(n = 4)
+
+# Then we can use these places for our plots
+selected_places <- most_variable_places$Places
 
 pt_perc = ggplot(df_diff %>% filter(tag == "Unified"))+
   geom_bar(aes(x = as.factor(Time), y = perc_diff, group = tag, fill = new_eps_value),
@@ -403,11 +378,31 @@ pt_perc = ggplot(df_diff %>% filter(tag == "Unified"))+
   scale_x_discrete(breaks = seq(0,max(df_diff$Time),20))
 
 
-g2= changecolorsFacet(pt_perc,colors_new_confParams)
+g2 = changecolorsFacet(pt_perc,colors_new_confParams)
+
+pt = ggplot(trajectories) +
+  geom_line(aes(x = Time, y = Marking, linetype = tag,  col = ConfParams ))+
+  facet_grid(Places~new_eps_value,scales = "free")+
+  scale_color_manual(values = colors_new_confParams[unique(trajectories$ConfParams)],guide="none")+
+  theme_bw()+
+  theme(
+    plot.subtitle = element_text(size = 10, face = "bold", color = "#2a475e"),
+    plot.title.position = "plot", 
+    axis.text = element_text(size = 9, color = "black"),
+    axis.title = element_text(size = 15, face = "bold"),
+    legend.key.size = unit(0.4, "cm"),
+    strip.text.x = element_text(size = 10, face = "bold", colour = "white"),
+    strip.text.y = element_text(size = 10, face = "bold", colour = "black"),
+    strip.background.y = element_rect( fill = "white"),
+    legend.position = "top")+
+  labs(x = "Time (h)",y = "Quantity", linetype = "Scenario")
+
+g = changecolorsFacet(pt,colors_new_eps_value)
 
 Fig2D = (g|g2) & theme(legend.position = "bottom")
-ggsave(plot = Fig2D,filename = "Figures/Fig2D.pdf",width = 20,height = 5)
+Fig2D
 
+ggsave(plot = Fig2D, filename = "Figures/Fig2D.pdf", width = 16, height = 18)
 
 #################
 
@@ -424,8 +419,8 @@ timing$Memory_KB_scaled <- (timing$Memory_KB - min(range_memory)) * scale_factor
 
 timing$ID = 1
 timing$eps = factor(timing$eps,levels = epstimes)
-# Plot
-p <- ggplot(timing, aes(x = eps ,group = ID) ) +
+
+p <- ggplot(timing, aes(x = eps, group = ID) ) +
   geom_line(aes(y = Time_s, color = "Time (s)"), linewidth = 1) +  # Time_s line
   geom_line(aes(y = GlobalExecution_time, color = "Global Time (s)"), linewidth = 1, linetype = "dashed") +  # Time_s line
   geom_line(aes(y = Memory_KB_scaled, color = "Memory (KB)"), linewidth = 1) +  # Scaled Memory_KB line
@@ -445,5 +440,12 @@ p <- ggplot(timing, aes(x = eps ,group = ID) ) +
   ) +
   labs(x = "Epsilon (eps)", color = "Variable")
 
-(pf|pt)/p+ plot_layout(heights  = c(2, 1),guides = 'collect')
+FigSx = (pf|pt)/p+ plot_layout(heights  = c(2, 1),guides = 'collect')
+ggsave(plot = FigSx, filename = "Figures/FigSx.pdf", width = 20, height = 25)
 
+p_call = ggplot(timing%>%filter(Scenario == "Unified"), aes(x = eps ,group = ID) ) +
+  geom_line(aes(y = FBA_calls, color = "Time (s)"), linewidth = 1) +
+  facet_grid(~params)
+
+ggsave(plot = p_call, filename = "Figures/p_call.pdf", width = 10, height = 2)
+  

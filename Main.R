@@ -1,3 +1,17 @@
+
+# loading library
+# library(devtools)
+# install_github("https://github.com/qBioTurin/epimod", ref="variabilityFBA", force = T)
+library(epimod)
+# downloadContainers(tag = "latest")
+library(dplyr)
+library(ggplot2)
+library(patchwork)
+library(RColorBrewer)
+library(parallel)
+library(doParallel)
+library(foreach)
+
 # Function to set working directory to the closest folder with a specific name
 set_closest_directory <- function(target_name) {
   wd = getwd()
@@ -25,19 +39,6 @@ set_closest_directory <- function(target_name) {
 }
 
 wd <- set_closest_directory("EpiCell_CDifficile")
-# loading library
-
-# library(devtools)
-# install_github("https://github.com/qBioTurin/epimod", ref="variabilityFBA", force = T)
-library(epimod)
-# downloadContainers(tag = "latest")
-library(dplyr)
-library(ggplot2)
-library(patchwork)
-library(RColorBrewer)
-library(parallel)
-library(doParallel)
-library(foreach)
 
 setwd(wd)
 supp_function.dir = "/code/supplementary_functions/"
@@ -99,7 +100,6 @@ if(!file.exists(paste0(wd, "/input/csv/react_index.txt"))){
 system("rm -f dockerID *error.log *.log ExitStatusFile")
 
 startTime = Sys.time()
-
 for (ablation in c("Unified", "ParAblated", "Ablated")) {
   Exe.exp(model_cat = model.name,
           model_name = model.name,
@@ -117,31 +117,30 @@ for (ablation in c("Unified", "ParAblated", "Ablated")) {
           FVAcomparison = F,
           react = "EX_biomass_e",
           debugFVA = F,
-          replicates = 10,
+          replicates = 21,
           param_target = c("IECsDeath", "Death4Treat", "Detox"),
           net_fname = "EpitCellDifficileHemeSink",
           cores = detectCores(),
           wd = wd,
           supp_function.dir = supp_function.dir)
 }
-
 endTime = Sys.time()
 
 ##### plot FIG.2 B and C - Main paper ##### 
-source(paste0(wd,"/code/plot_functions/Fig2_plot_old.R") )
-
-pl = plotting_Fig2_paper(Exper = "Model_Sensitivity",
-                     Condition = "Therapy",
-                     tag = c("Ablated", "ParAblated", "Unified"),
-                     param_target = "IECsDeath",
-                     Tempi = c(0, 12, 24, 36, 48, 60),
-                     colo1 = c("black", "magenta", "gold"),
-                     colo2 = c("black", "#266867", "yellow"),
-                     colo3 = c("#ffd166", "#ee6c4d", "#293241"),
-                     wd )
-pl$pl2C
-pl$pl2B
-
+# source(paste0(wd,"/code/plot_functions/Fig2_plot_old.R") )
+# 
+# pl = plotting_Fig2_paper(Exper = "Model_Sensitivity",
+#                      Condition = "Therapy",
+#                      tag = c("Ablated", "ParAblated", "Unified"),
+#                      param_target = "IECsDeath",
+#                      Tempi = c(0, 12, 24, 36, 48, 60),
+#                      colo1 = c("black", "magenta", "gold"),
+#                      colo2 = c("black", "#266867", "yellow"),
+#                      colo3 = c("#ffd166", "#ee6c4d", "#293241"),
+#                      wd )
+# pl$pl2C
+# pl$pl2B
+# 
 # ggsave(plot = pl$pl2C,filename = "Fig2C.pdf",path = "Figures/",width = 14,height = 10)
 # ggsave(plot = pl$pl2B,filename = "Fig2B.pdf",path = "Figures/",width = 10,height = 14)
 
@@ -155,7 +154,7 @@ ListID = csvFileUpdating.minRankConfigID(wd, net_fname = "EpitCellDifficileHemeS
 
 system("rm -f dockerID *error.log *.log ExitStatusFile")
 
-ablation_types <- c("Unified", "ParAblated")
+ablation_types <- c("Unified", "ParAblated", "Ablated")
 therapy_types <- c("NoDrug", "Therapy")
 
 source(paste0(wd,"/code/supplementary_functions/write_tracefluxesbounds.R") )
@@ -193,15 +192,16 @@ for (ablation in ablation_types) {
 
 source(paste0(wd,"/code/plot_functions/FigS4_plot.R"))
 
-pltFigS4 = PlottingFigS4(Exper = "Model_Analysis", 
-              colConNoDrug = "darkred", colConTherapy = "darkcyan", coltag = "darkgray",
-              tag = c("ParAblated", "Unified"),
-              Condition = c("NoDrug", "Therapy"),
-              wd = wd)
+FigS4 = PlottingFigS4(Exper = "Model_Analysis", 
+                      colConNoDrug = "darkred", 
+                      colConTherapy = "darkcyan", 
+                      coltag = "darkgray",
+                      tag = c("Ablated", "Unified"),
+                      Condition = c("NoDrug", "Therapy"),
+                      wd = wd)
 
-pltFigS4
-
-# ggsave(plot = pltFigS4,filename = "FigS4.pdf",path = "Figures/",width = 14,height = 12)
+ggsave(plot = FigS4[[1]], filename = "Allplaces.pdf", path = "Figures/", width = 11, height = 12)
+ggsave(plot = FigS4[[2]], filename = "Fluxes.pdf", path = "Figures/", width = 11, height = 6)
 
 #### plotting biomass
 
@@ -255,4 +255,4 @@ p_bio = ggplot(df, aes(x = Time, y = Marking, color = Scenario)) +
         axis.title = element_text(size = 12, face = "bold")) +
   scale_colour_manual(values = col_settings)
 
-p_bio
+ggsave(plot = p_bio, filename = "p_bio.pdf", path = "Figures/", width = 4, height = 2)

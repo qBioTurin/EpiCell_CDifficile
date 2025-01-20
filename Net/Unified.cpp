@@ -322,6 +322,9 @@ double FBA(double *Value,
     }
     
     vec_fluxb[0].solve();
+    
+    cout << "FBA call" << endl;
+    
     Vars = vec_fluxb[0].getVariables();
     
     //double marking = 0;
