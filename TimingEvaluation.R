@@ -126,7 +126,7 @@ supp_function.dir = "/code/supplementary_functions/"
 
 resParams = readRDS("./paramsProve.rds")
 
-epstimes = c("1e-6", "0.1", "0.5", "0.6", "0.7", "0.8", "0.9", "1")
+epstimes = c("1e-6", "1e-4","1e-2","0.1","0.5","1")
 numbConfig = 1:dim(resParams$Config)[1]
 paramsConfig = resParams$Config
 
@@ -261,6 +261,11 @@ MultipleAnalysis = lapply(seq_along(paramsgrid[, 1]),
                           paramsConfig = resParams$Config, paramsgrid
 )
 
+
+saveRDS(MultipleAnalysis, file = "trajectories.rds")
+MultipleAnalysis = readRDS(file = "trajectories.rds")
+
+
 timing = do.call(rbind, lapply(MultipleAnalysis, "[[", 2))
 flux = do.call(rbind, lapply(lapply(MultipleAnalysis,"[[", 1),"[[", 1))
 trajectories = do.call(rbind, lapply(lapply(MultipleAnalysis, "[[",1), "[[", 2))
@@ -270,11 +275,8 @@ trajectories$config = factor(trajectories$config, levels = paste0("Set ", numbCo
 flux$config = factor(flux$config, levels = paste0("Set ", numbConfig))
 trajectories$ConfParams = trajectories$config
 
-saveRDS(trajectories, file = "trajectories.rds")
 
 ###
-
-trajectories = readRDS(file = "trajectories.rds")
 
 plot_varying_eps = ggplot(trajectories 
        # %>% filter(Time < 25) 
@@ -317,19 +319,20 @@ df_diff <- trajectories %>%
   tidyr::gather(-Time,-Places,-baseline,-config, -tag,-ConfParams, key = "new_eps_value", value = "Marking") %>%
   mutate(perc_diff = if_else(baseline!= 0 , 100 * (Marking - baseline) / baseline , 100 * Marking))
 
-most_variable_places <- df_diff %>%
+most_variable_places <- df_diff %>% filter(tag == "Unified") %>%
   group_by(Places) %>%
   summarize(
     mean_abs_diff = mean(abs(perc_diff), na.rm = TRUE),
     sd_diff = sd(abs(perc_diff), na.rm = TRUE)
   ) %>%
-  arrange(desc(mean_abs_diff)) %>%
+  arrange(desc(mean_abs_diff))%>%
+  filter(Places != "Drug") %>%
   slice_head(n = 4)
 
 # Then we can use these places for our plots
-selected_places <- most_variable_places$Places
+selected_places <- most_variable_places$Places 
 
-pt_perc = ggplot(df_diff %>% filter(tag == "Unified"))+
+pt_perc = ggplot(df_diff %>% filter(tag == "Unified", Places %in% selected_places))+
   geom_bar(aes(x = as.factor(Time), y = perc_diff, group = tag, fill = new_eps_value),
            stat = "identity", position = "dodge")+
   facet_grid(Places~ConfParams,scales = "free")+
@@ -351,7 +354,7 @@ pt_perc = ggplot(df_diff %>% filter(tag == "Unified"))+
 
 g2 = changecolorsFacet(pt_perc,colors_new_confParams)
 
-pt = ggplot(trajectories) +
+pt = ggplot(trajectories%>% filter( Places %in% selected_places)) +
   geom_line(aes(x = Time, y = Marking, linetype = tag,  col = ConfParams ))+
   facet_grid(Places~new_eps_value,scales = "free")+
   scale_color_manual(values = colors_new_confParams[unique(trajectories$ConfParams)],guide="none")+
@@ -377,46 +380,43 @@ ggsave(plot = Fig2D, filename = "Figures/Fig2D.pdf", width = 16, height = 18)
 
 #################
 
-pf = ggplot(flux)+
-  geom_line(aes(x = Time, y = Flux, col = new_eps_value,linetype = tag))+
-  facet_grid(config~Reaction,scales = "free")+
-  theme_bw()
+#################
 
-# Scale Memory_KB to match the range of Time_s
-range_time <- range(c(timing$Time_s,timing$GlobalExecution_time))
-range_memory <- range(timing$Memory_KB)
-scale_factor <- diff(range_time) / diff(range_memory)
-timing$Memory_KB_scaled <- (timing$Memory_KB - min(range_memory)) * scale_factor + min(range_time)
+range_time <- range(timing$GlobalExecution_time)
+range_calls <- range(timing$FBA_calls)
+scale_factor <- diff(range_time) / diff(range_calls)
+timing$FBA_calls_scaled <- (timing$FBA_calls - min(range_calls)) * scale_factor + min(range_time)
 
 timing$ID = 1
 timing$eps = factor(timing$eps,levels = epstimes)
 
-p <- ggplot(timing, aes(x = eps, group = ID) ) +
-  geom_line(aes(y = Time_s, color = "Time (s)"), linewidth = 1) +  # Time_s line
+timing %>% filter(Scenario != "Unified")
+
+p <- ggplot(timing%>% filter(Scenario == "Unified"), aes(x = eps, group = ID) ) +
   geom_line(aes(y = GlobalExecution_time, color = "Global Time (s)"), linewidth = 1, linetype = "dashed") +  # Time_s line
-  geom_line(aes(y = Memory_KB_scaled, color = "Memory (KB)"), linewidth = 1) +  # Scaled Memory_KB line
+  geom_line(aes(y = FBA_calls_scaled, group = Scenario, color = "Number of FBA"), linewidth = 1) +  # Scaled Memory_KB line
   scale_y_continuous(
     name = "Time (s)",
-    sec.axis = sec_axis(~ (. - min(range_time)) / scale_factor + min(range_memory), 
-                        name = "Memory (KB)")
+    sec.axis = sec_axis(~ (. - min(range_time)) / scale_factor + min(range_calls), 
+                        name = "Number of FBA")
   ) +
-  scale_color_manual(values = c("Time (s)" = "blue", "Memory (KB)" = "red","Global Time (s)" = "blue")) +
+  scale_color_manual(values = c("Number of FBA" = "red","Global Time (s)" = "blue")) +
   theme_minimal() +
   theme(
+    legend.position = "bottom",
     axis.title.y.left = element_text(color = "blue"),  # Secondary axis styling
     axis.text.y.left = element_text(color = "blue"),
     axis.title.y.right = element_text(color = "red"),  # Secondary axis styling
     axis.text.y.right = element_text(color = "red"),
     legend.title = element_blank()
   ) +
-  labs(x = "Epsilon (eps)", color = "Variable")
-
-FigSx = (pf|pt)/p+ plot_layout(heights  = c(2, 1),guides = 'collect')
-ggsave(plot = FigSx, filename = "Figures/FigSx.pdf", width = 20, height = 25)
-
-p_call = ggplot(timing%>%filter(Scenario == "Unified"), aes(x = eps ,group = ID) ) +
-  geom_line(aes(y = FBA_calls, color = "Time (s)"), linewidth = 1) +
+  labs(x = "Threshold (eps)", color = "")+
   facet_grid(~params)
 
-ggsave(plot = p_call, filename = "Figures/p_call.pdf", width = 10, height = 2)
+
+pl = (Fig2D + plot_layout(guides = "collect")) /p+ plot_layout(heights = c(1,0.4))
+pl
+ggsave(plot = pl, filename = "results/PerformanceCdiff.pdf", width = 16, height = 10)
+
+saveRDS(pl,file = "results/PerformanceCdiff.RDs")
   
