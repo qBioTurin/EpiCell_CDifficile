@@ -280,7 +280,7 @@ trajectories$ConfParams = trajectories$config
 
 plot_varying_eps = ggplot(trajectories 
        # %>% filter(Time < 25) 
-       %>% filter(Places %in% c("CD", "IECs", "pheme_c", "leu_L_e"))) +
+       %>% filter(tag == "Unified", Places %in% c("CD", "IECs", "pheme_c", "leu_L_e"))) +
   geom_line(aes(x = Time, y = Marking, linetype = ConfParams, col = new_eps_value)) +
   facet_grid(Places~tag,scales = "free") +
   theme_bw() +
@@ -354,8 +354,8 @@ pt_perc = ggplot(df_diff %>% filter(tag == "Unified", Places %in% selected_place
 
 g2 = changecolorsFacet(pt_perc,colors_new_confParams)
 
-pt = ggplot(trajectories%>% filter( Places %in% selected_places)) +
-  geom_line(aes(x = Time, y = Marking, linetype = tag,  col = ConfParams ))+
+pt = ggplot(trajectories%>% filter(tag == "Unified", Places %in% selected_places)) +
+  geom_line(aes(x = Time, y = Marking,  col = ConfParams ))+
   facet_grid(Places~new_eps_value,scales = "free")+
   scale_color_manual(values = colors_new_confParams[unique(trajectories$ConfParams)],guide="none")+
   theme_bw()+
@@ -403,7 +403,15 @@ p <- ggplot(timing%>% filter(Scenario == "Unified"), aes(x = eps, group = ID) ) 
   scale_color_manual(values = c("Number of FBA" = "red","Global Time (s)" = "blue")) +
   theme_minimal() +
   theme(
-    legend.position = "bottom",
+    plot.subtitle = element_text(size = 10, face = "bold", color = "#2a475e"),
+    plot.title.position = "plot", 
+    axis.text = element_text(size = 9, color = "black"),
+    axis.title = element_text(size = 15, face = "bold"),
+    legend.key.size = unit(0.4, "cm"),
+    strip.text.x = element_text(size = 10, face = "bold", colour = "white"),
+    strip.text.y = element_text(size = 10, face = "bold", colour = "black"),
+    strip.background.y = element_rect( fill = "white"),
+    legend.position = "nonw",
     axis.title.y.left = element_text(color = "blue"),  # Secondary axis styling
     axis.text.y.left = element_text(color = "blue"),
     axis.title.y.right = element_text(color = "red"),  # Secondary axis styling
@@ -414,9 +422,10 @@ p <- ggplot(timing%>% filter(Scenario == "Unified"), aes(x = eps, group = ID) ) 
   facet_grid(~params)
 
 
-pl = (Fig2D + plot_layout(guides = "collect")) /p+ plot_layout(heights = c(1,0.4))
+pl = (Fig2D + plot_layout(guides = "collect")) /p+ plot_layout(heights = c(1,0.4)) + plot_annotation(tag_levels = 'A')
 pl
-ggsave(plot = pl, filename = "results/PerformanceCdiff.pdf", width = 16, height = 10)
+
+ggsave(plot = pl, filename = "results/PerformanceCdiff.pdf", width = 18, height = 10)
 
 saveRDS(pl,file = "results/PerformanceCdiff.RDs")
   
